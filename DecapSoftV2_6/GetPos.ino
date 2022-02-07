@@ -31,7 +31,7 @@ long GetPos(){
     }else{Serial.println("Cam capture failed");
       return 0;    
   }
-    // Cropavg -----------
+    // Cropavg ----------- Calcul le moving avg sur le frame buffer
       uint8_t k = 0;
       for(uint8_t i = cropy[0]; i<=cropy[1]; i++){
         for(uint8_t j = cropx[0]; j<=cropx[1]; j++){
@@ -52,7 +52,7 @@ long GetPos(){
       bool diff2 = abs(mvt[vect[i]]-mvt[vect[i-2*n]]) > thres;
 
       if(diff1 && diff2) {
-          Pos[found] = vect[i];
+          Pos[found] = vect[i]; // Put in pos the x coord of the peak
           found++;
         }
       }
@@ -61,30 +61,30 @@ long GetPos(){
     Serial.print("Capture found ");
     Serial.print(found);
     Serial.println(" markers.");
-    Pos[found] = 0;
+    Pos[found] = 0; //Put 0 for the last Pos because we increment one time to much
 
     uint8_t i,j = 0;
      k = 0;
 
     while(j < found -1 && k <10){
       i = 1;
-      Result[k] = Pos[j];
-      while(abs(Pos[j]-Pos[j+1])<4 && j < found -1){
-        Result[k] += Pos[j+1];
+      Result[k] = Pos[j]; //Transfer Pos value into Result
+      while(abs(Pos[j]-Pos[j+1])<4 && j < found -1){ //Si Pos[j] et Pos[j+1] sont plus près que 4mm alors les adds
+        Result[k] += Pos[j+1];                       //pour faire la moyenne sur i
         i++;j++;
       }
-      Result[k] /= i;
+      Result[k] /= i; //Result et un vecteurs avec les max 10 premiers pics, et ceux multiple sont moyenné
       k++;j++;
     }
 
 
     //Serial.println(Result[0]);
 
-    float pixtomm = 0.16286; //Should be right
+    float pixtomm = 0.16286; //Should be right -- Depends on the distance to the cap might be wrong now
     float pi = 3.14159265358979323846;  //is definitely right
-
-    Result[0] = (Result[0] + cropy[0] - 120) * pixtomm;
-
+    //Le premier pic est le plus intéressant -> serait intéressant de voir la distance entre les différents pics
+    Result[0] = (Result[0] + cropy[0] - 120) * pixtomm; //
+    
     return -ceil(stp1tour*(atan2(Result[0],24)/(2*pi)))+calibration;
 
 }
