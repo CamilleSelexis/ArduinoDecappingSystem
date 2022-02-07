@@ -16,7 +16,7 @@ long GetPos(){
   uint8_t vect[ly+1];
   vect[0] = floor(ly*0.5);
   for(int i = 1;i<=ly;i++){
-    vect[i] = vect[i-1] + pow(-1,i)*i;
+    vect[i] = vect[i-1] + pow(-1,i)*i; //
   }
 
   float Result[10];
@@ -35,21 +35,21 @@ long GetPos(){
       uint8_t k = 0;
       for(uint8_t i = cropy[0]; i<=cropy[1]; i++){
         for(uint8_t j = cropx[0]; j<=cropx[1]; j++){
-              avg[k] += fb[i*320+j];
+              avg[k] += fb[i*320+j]; //Compute avg on the length () to obtain a 1xly vector
         }
-        k++;
+        k++; //k == i
       }
       for(uint8_t i = 0; i<ly; i++){
-        avg[i] /= lx;
+        avg[i] /= lx; //
       }
       //------------------
     for(uint8_t i = n; i<ly-n; i++){
         mvt[i-n] = movingAvg(avg,n,i);
-      }    
+      }    //Compute moving avg on the length averaged vector
 
     for(uint8_t i = 2*n; i<= ly-2*n-1; i++){
-      bool diff1 = abs(mvt[vect[i]]-mvt[vect[i+2*n]]) > thres;
-      bool diff2 = abs(mvt[vect[i]]-mvt[vect[i-2*n]]) > thres;
+      bool diff1 = abs(mvt[vect[i]]-mvt[vect[i+2*n]]) > thres; //Change into i+2
+      bool diff2 = abs(mvt[vect[i]]-mvt[vect[i-2*n]]) > thres; // Change into i-2
 
       if(diff1 && diff2) {
           Pos[found] = vect[i]; // Put in pos the x coord of the peak
