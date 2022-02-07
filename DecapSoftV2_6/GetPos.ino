@@ -107,7 +107,7 @@ long finalPos() {
     temp2 = GetPos();
     delay(50);
     i++;
-  }
+  } //Fait une loop pour essayer d'avoir un résultat stable, tant que diff > tol
 
   cam.standby(true);
   return ceil((temp1+temp2)*0.5);
