@@ -8,7 +8,7 @@ In coordination with DecapSoft on M7 core
 
 #include <AccelStepper.h>
 #include "Arduino.h"
-#include "RPC_internal.h"
+#include "RPC.h"
 using namespace rtos;
 
 #define mvt_in  digitalWrite(LEDG,LOFF);digitalWrite(LEDR,LON)

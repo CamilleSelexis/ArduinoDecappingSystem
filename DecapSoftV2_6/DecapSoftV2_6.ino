@@ -14,7 +14,7 @@ Vision not yet verified
 #include <stdio.h>
 
 #include "Arduino.h"
-#include "RPC_internal.h"
+#include "RPC.h"
 using namespace rtos;
 
 #include <stdint.h>
