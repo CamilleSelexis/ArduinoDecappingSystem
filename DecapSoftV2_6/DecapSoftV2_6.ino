@@ -74,7 +74,7 @@ EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52
 //-------------------------------------------//
 void setup(){
   bootM4();
-  RPC1.begin(); 
+  RPC.begin(); 
   Serial.begin(baud); //Begin serial communication aka discussion through usb
   Serial.println("Serial Coms started. RPC starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts

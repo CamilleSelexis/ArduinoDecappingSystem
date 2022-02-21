@@ -5,7 +5,7 @@ void refAllHome(){ //Initialisation routine
   Serial.println("The machine will now ref all its axis...");
   mvt_in;        //Mvt led on
   motorON;      //Motor enable
-  *Pworking = RPC1.call("Ref").as<bool>();
+  *Pworking = RPC.call("Ref").as<bool>();
   Wait();
   motorOFF;     //motor disable
   mvt_out;       //Led mvt off
@@ -22,7 +22,7 @@ void Decap(){
     mvt_in;
     motorON;
     digitalWrite(pin_crydom,HIGH);
-    *Pworking = RPC1.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
     motorOFF;
     long C_pos = finalPos();
@@ -30,14 +30,14 @@ void Decap(){
     Serial.print("Camera capture returned the value : ");
     Serial.println(C_pos);
     motorON;
-    *Pworking = RPC1.call("Align",C_pos).as<bool>();
+    *Pworking = RPC.call("Align",C_pos).as<bool>();
     Wait();
-    *Pworking = RPC1.call("GetDown").as<bool>();
+    *Pworking = RPC.call("GetDown").as<bool>();
     Wait();
-    *Pworking = RPC1.call("Unscrew").as<bool>();
+    *Pworking = RPC.call("Unscrew").as<bool>();
     Wait();
     *CstartPoint = true;
-    //*Pworking = RPC1.call("Bringback").as<bool>();
+    //*Pworking = RPC.call("Bringback").as<bool>();
     //Wait();
     motorOFF;
     mvt_out;
@@ -59,16 +59,16 @@ void Recap(){
     mvt_in;
     digitalWrite(LEDB,LOFF);
     motorON;
-    *Pworking = RPC1.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
-    *Pworking = RPC1.call("reScrew").as<bool>();
+    *Pworking = RPC.call("reScrew").as<bool>();
     Wait();
     *CstartPoint = false;
-    *Pworking = RPC1.call("untigh_up").as<bool>();
+    *Pworking = RPC.call("untigh_up").as<bool>();
     Wait();
     digitalWrite(pin_crydom,LOW);
     Serial.println("Recaping finished");
-    *Pworking = RPC1.call("RefM").as<bool>();
+    *Pworking = RPC.call("RefM").as<bool>();
     Wait();
     motorOFF;
     mvt_out;
@@ -92,20 +92,20 @@ Serial.println("The machine will now start the decaping routine. Keep clear");
     mvt_in;
     motorON;
     digitalWrite(pin_crydom,HIGH);
-    *Pworking = RPC1.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
-    *Pworking = RPC1.call("GetDown").as<bool>();
+    *Pworking = RPC.call("GetDown").as<bool>();
     //long C_pos = GetPos();
     //Serial.print("Camera capture returned the value :");
     //Serial.println(C_pos);
 
     //Wait();
-    //*Pworking = RPC1.call("Align",C_pos).as<bool>();
+    //*Pworking = RPC.call("Align",C_pos).as<bool>();
     Wait();
-    *Pworking = RPC1.call("Unscrew").as<bool>();
+    *Pworking = RPC.call("Unscrew").as<bool>();
     Wait();
     *CstartPoint = true;
-    *Pworking = RPC1.call("Bringback").as<bool>();
+    *Pworking = RPC.call("Bringback").as<bool>();
     Wait();
     motorOFF;
     mvt_out;
@@ -123,16 +123,16 @@ void SudoRecap(){
     mvt_in;
     digitalWrite(LEDB,LOFF);
     motorON;
-    *Pworking = RPC1.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
-    *Pworking = RPC1.call("reScrew").as<bool>();
+    *Pworking = RPC.call("reScrew").as<bool>();
     Wait();
     *CstartPoint = false;
-    *Pworking = RPC1.call("untigh_up").as<bool>();
+    *Pworking = RPC.call("untigh_up").as<bool>();
     Wait();
     digitalWrite(pin_crydom,LOW);
     Serial.println("Recaping finished");
-    *Pworking = RPC1.call("RefM").as<bool>();
+    *Pworking = RPC.call("RefM").as<bool>();
     Wait();
     motorOFF;
     mvt_out;
@@ -140,19 +140,19 @@ void SudoRecap(){
 
 void Wait() {
   delay(500);
-  RPC1.flush();
-  while(!(RPC1.parseInt(SKIP_NONE)==1)){
+  RPC.flush();
+  while(!(RPC.parseInt(SKIP_NONE)==1)){
     delay(100);
     String buffer = "";
-    while (RPC1.available()) {
-      buffer += (char)RPC1.read(); // Fill the buffer with characters
+    while (RPC.available()) {
+      buffer += (char)RPC.read(); // Fill the buffer with characters
     }
   
     if (buffer.length() > 0) {
       Serial.print(buffer);
     }
   } 
-  *Pworking = RPC1.call("Backto1").as<bool>();
+  *Pworking = RPC.call("Backto1").as<bool>();
   delay(100);
   }
   
