@@ -14,7 +14,9 @@ Vision not yet verified
 #include <stdio.h>
 
 #include "Arduino.h"
-#include "RPC_internal.h"
+#include "RPC.h"
+#include "himax.h"
+HM01B0 himax;
 using namespace rtos;
 
 #include <stdint.h>
@@ -46,9 +48,10 @@ volatile bool *Pworking = &M4work;     //N'est pas utilisé pour le moment mais 
 
 int baud = 115200;          //Baud rate of the serial comunication
 
-CameraClass cam;
-uint8_t fb[320*240];        //Buffer for the image capture
-uint8_t *Pfb = fb; 
+Camera cam(himax);
+#define IMAGE_MODE CAMERA_GRAYSCALE
+//uint8_t fb[320*240];        //Buffer for the image capture
+FrameBuffer fb(320,240,1);//*Pfb = fb; 
 
 const uint8_t cropx[2] = {100,180};    //Size of the cropped image
 const uint8_t cropy[2] = {90,230};
@@ -57,8 +60,8 @@ const uint8_t lx = cropx[1]-cropx[0];
 
 //Light depending parameters for the image detection (will probably need a tweek for each environement)
 //Try to change thres and n to have the minimum amount of markers detected while never having 0 of them.
-const uint8_t thres = 8;         //Threshold of image detection 2->10
-const uint8_t n = 2;             //Size of the moving average avg done on 2n+1
+const uint8_t thres = 4;         //Threshold of image detection 2->10
+const uint8_t n = 2;             //Size of the moving average 1->2 -> 1 gives 3, 2 gives 5 etc...
 
 //Once set calibration should stay the same
 const long calibration = 500;    //Rotation offset
@@ -74,22 +77,17 @@ EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52
 //-------------------------------------------//
 void setup(){
   bootM4();
-  RPC1.begin(); 
+  RPC.begin(); 
   Serial.begin(baud); //Begin serial communication aka discussion through usb
-  Serial.println("Serial Coms started. RPC1 starting...");
+  Serial.println("Serial Coms started. RPC starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
   digitalWrite(LEDB,LON);
 
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
-  if(cam.begin(CAMERA_R320x240, 15)== 0){
-    Serial.println("Cam initialised");//initialise the camera
-  }
-  else{
-    Serial.println("Cam failed to initialize");
-  }
-  //cam.standby(true);                //Put it in standby mode
-                 //Initialise the RPC1 coms, also boots the M4
+  cam.begin(CAMERA_R320x240, IMAGE_MODE, 15);   //initialise the camera
+//  cam.setStandby(true);                //Put it in standby mode
+                 //Initialise the RPC coms, also boots the M4
   
   Serial.println("Ethernet Coms starting...");
   
@@ -124,6 +122,15 @@ void loop() {
 
 //No need to change that, just remembers it seek the string at the end of a line. So "blabla" will also trigger "anyblabla"
   
+  
+//  String buffer = "";
+//  while (RPC1.available()) {
+//    buffer += (char)RPC1.read(); // Fill the buffer with characters
+//  }
+//
+//  if (buffer.length() > 0) {
+//    Serial.print(buffer);
+//  }
   
   // listen for incoming clients
   EthernetClient client = server.available();
@@ -160,10 +167,7 @@ void loop() {
           } 
         else if(currentLine.endsWith("Sudo Ricap")){
           SudoRecap();
-          }
-        else if(currentLine.endsWith("Standby")){
-          GoToStandby();
-        }
+          } 
         else if(currentLine.endsWith("capture")){
           Serial.println("Capture Routine");
           Serial.println(finalPos());        

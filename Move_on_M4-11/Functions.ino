@@ -9,16 +9,16 @@ void Ref()  {
   RPC1.println("Starting Ref");
   if(!digitalRead(pin_BZ)){ //Get away from Z baumer
     RPC1.println("On the Z baumer, going away");
-    ZSPoint->move(10000);
+    ZSPoint->move(5000*micro_ratio);
     while(ZSPoint->isRunning()){stepperZ.run();}
   }
   if(!digitalRead(pin_BX)){ //Get away from X baumer
     RPC1.println("On the X baumer, going away");
-    XSPoint->move(5000);
+    XSPoint->move(2500*micro_ratio);
     while(XSPoint->isRunning()){stepperX.run();}
   }
-  MSPoint->move(7500);        //Let go of a potential lid
-  CSPoint->move(-5000);
+  MSPoint->move(4000*micro_ratio);        //Let go of a potential lid
+  CSPoint->move(-2500*micro_ratio);
   while(MSPoint->isRunning()||CSPoint->isRunning()){runMC;}
   deBuff();
   //----------------------------Set Z 0 Position-----------------------
@@ -45,53 +45,53 @@ void Ref()  {
 }
 
 void refZ() {
-  ZSPoint->move(-800000);    //Go up and search limit
+  ZSPoint->move(-400000**micro_ratio);    //Go up and search limit
   RPC1.println("Going Up to find my limits");
   while(digitalRead(pin_BZ)){stepperZ.run();}//interrupt stop
   deBuff();
-  ZSPoint->move(6000);        // leave the switch
+  ZSPoint->move(3000*micro_ratio);        // leave the switch
   while(ZSPoint->isRunning()){stepperZ.run();}
   deBuff();
   slow_initZ(); //slow the stepperZ
-  ZSPoint->move(-10000);       //Go back a second time
+  ZSPoint->move(-5000*micro_ratio);       //Go back a second time
   while(digitalRead(pin_BZ)){stepperZ.run();}
   deBuff();
   ZSPoint->setCurrentPosition(0);
-  ZSPoint->move(3000);    //Get away from the switch
+  ZSPoint->move(1500*micro_ratio);    //Get away from the switch
   while(ZSPoint->isRunning()){stepperZ.run();}
   RPC1.println("Ref Z is done");
 }
 void refX() {
   deBuff();
-  XSPoint->move(-2000000);    //Go far from the platform, search limit
+  XSPoint->move(-1000000*micro_ratio);    //Go far from the platform, search limit
   RPC1.println("Going away to find my limits");
   while(digitalRead(pin_BX)){stepperX.run();}
   deBuff();
-  XSPoint->move(3000); //Get away from the Baumer X
+  XSPoint->move(1500*micro_ratio); //Get away from the Baumer X
   while(XSPoint->isRunning()){stepperX.run();}
   deBuff();
   slow_initX();
-  XSPoint->move(-10000);    //Go back a second time
+  XSPoint->move(-5000*micro_ratio);    //Go back a second time
   while(digitalRead(pin_BX)){stepperX.run();}
   deBuff();
   XSPoint->setCurrentPosition(0);
-  XSPoint->move(3000);
+  XSPoint->move(3000*micro_ratio);
   while(XSPoint->isRunning()){stepperX.run();}
   deBuff();
   RPC1.println("Ref X is done");
 }
 void refM() {
-  MSPoint->move(-2000000);  //Go to first contact closure
+  MSPoint->move(-1000000*micro_ratio);  //Go to first contact closure
   while(!digitalRead(pin_contact)){stepperM.run();}
   deBuff();
-  MSPoint->move(8000);
+  MSPoint->move(4000*micro_ratio);
   while(MSPoint->isRunning()){stepperM.run();}
   deBuff();
   slow_initM();
-  MSPoint->move(-10000);    //Go back a second time
+  MSPoint->move(-5000*micro_ratio);    //Go back a second time
   while(!digitalRead(pin_contact)){stepperM.run();}  //Interupt contain the stp_Z move to 2000
   MSPoint->setCurrentPosition(0);
-  MSPoint->move(3000); //Go to an absolute position
+  MSPoint->move(1500*micro_ratio); //Go to an absolute position
   while(MSPoint->isRunning()){stepperM.run();}
   RPC1.println("Ref M is done");
 }
@@ -99,12 +99,12 @@ void refM() {
 void refMZ() {
   RPC1.println("Starting parrallel init for Z and M");
   deBuff();
-  ZSPoint->move(-2000000);    //Go up and search limit
-  MSPoint->move(-2000000);  //Go to first contact closure
+  ZSPoint->move(-1000000*micro_ratio);    //Go up and search limit
+  MSPoint->move(-1000000*micro_ratio);  //Go to first contact closure
   bool phase_1 = true;
   while(phase_1){
-    if(!digitalRead(pin_BZ)){ZSPoint->move(6000);} //Change dir of Z
-    if(digitalRead(pin_contact)){MSPoint->move(8000);} // Change dir of M
+    if(!digitalRead(pin_BZ)){ZSPoint->move(3000*micro_ratio);} //Change dir of Z
+    if(digitalRead(pin_contact)){MSPoint->move(4000*micro_ratio);} // Change dir of M
     runMZ;
     if(!ZSPoint->isRunning()&&!MSPoint->isRunning()){
       phase_1 = false;
@@ -113,8 +113,8 @@ void refMZ() {
   deBuff();
   slow_initZ();
   slow_initM();
-  ZSPoint->move(-10000);       //Go back a second time
-  MSPoint->move(-10000);    //Go back a second time
+  ZSPoint->move(-5000*micro_ratio);       //Go back a second time
+  MSPoint->move(-5000*micro_ratio);    //Go back a second time
   bool phase_2 = true;
   while(phase_2){
     if(!digitalRead(pin_BZ)){ZSPoint->setCurrentPosition(0);ZSPoint->move(0);}
@@ -125,8 +125,8 @@ void refMZ() {
     }
   }
   deBuff();
-  ZSPoint->move(3000);       //Go away
-  MSPoint->move(5000);    //Go away
+  ZSPoint->move(1500*micro_ratio);       //Go away
+  MSPoint->move(2500*micro_ratio);    //Go away
   while(ZSPoint->isRunning()&&MSPoint->isRunning()){
     runMZ;
   }
@@ -140,12 +140,12 @@ void refC() {
   if(analogRead(pin_photo)>950){
     barrier = false;
     RPC1.println("Not on the barrier, going CCW");
-    CSPoint->move(-50000);
+    CSPoint->move(-25000*micro_ratio);
   }
   else{
     barrier = true;
     RPC1.println("In front of the barrier, going CW");
-    CSPoint->move(100000);
+    CSPoint->move(50000*micro_ratio);
   }
   if(barrier){
     while(!done_C){
@@ -242,7 +242,7 @@ long Unscrew() {
   while(CSPoint->isRunning()){runCZ;}
   Z_end = ZSPoint->currentPosition();     //when chuck stop, we note Z position
   stepper_std();
-  while(abs(ZSPoint->distanceToGo())>160000){stepperZ.run();}
+  while(abs(ZSPoint->distanceToGo())>80000*micro_ratio){stepperZ.run();}
   XSPoint->moveTo(Xzero_offset);
   while(ZSPoint->isRunning()||XSPoint->isRunning()){runXZ;}
   deBuff();
@@ -277,7 +277,7 @@ void reScrew(long Z_screw) {  //Takes as input the point where C stopped rotatin
   deBuff();
   //Go up a bit
   ZSPoint->moveTo(Zzero_offset);
-  while(abs(ZSPoint->distanceToGo())>160000){stepperZ.run();}
+  while(abs(ZSPoint->distanceToGo())>80000*micro_ratio){stepperZ.run();}
 }
 
 //Unengage on the X axis
@@ -295,7 +295,7 @@ void untigh_up() {
   while(abs(MSPoint->distanceToGo()>0)){stepperM.run();}
   deBuff();
   ZSPoint->moveTo(Zzero_offset);
-  while(abs(ZSPoint->distanceToGo())>80000){stepperZ.run();}
+  while(abs(ZSPoint->distanceToGo())>40000*micro_ratio){stepperZ.run();}
   XSPoint->moveTo(Xzero_offset);
   while(abs(ZSPoint->distanceToGo())>0){runXZ;}
   deBuff();

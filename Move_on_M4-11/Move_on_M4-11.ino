@@ -39,14 +39,14 @@ const long motor_step_rot = 200;  //Number of steps in rot of the motors
 const long micro_ratio = 2; //Microsteps ratio
 const long screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 20;        //Min pulse width in us
-const long X_pos = 65300;   //Position of the basket under the arm
-const long Xzero_offset = 10000; //Standby position X 
+const long X_pos = 32650*micro_ratio;   //Position of the basket under the arm
+const long Xzero_offset = 5000*micro_ratio; //Standby position X 
 const uint Xgear = 5;        //X motor gearbox
 
-const long Zzero_offset = 200000; //Standby position Z [steps]
-const long Z_inter = Zzero_offset+180000; //Intermediate position
-const long Z_pos = 455000;   //Position of the claws at the cap level
-const long Z_prec = 2000;   //Precontrainte on the spring
+const long Zzero_offset = 100000*micro_ratio; //Standby position Z [steps]
+const long Z_inter = Zzero_offset+90000*micro_ratio; //Intermediate position
+const long Z_pos = 227500*micro_ratio;   //Position of the claws at the cap level
+const long Z_prec = 1000*micro_ratio;   //Precontrainte on the spring
 const long Zgear = 19;        //Z motor gearbox
 
 
@@ -57,10 +57,10 @@ long stp1tour;       //Number of step in one C rotation.
 
 const uint pasLBW = 8;     //Pas de vis du Labware
 
-const long Mzero_offset = 126000; //Standby position M
-const long M_open = 126000; //Open position for the claws
+const long Mzero_offset = 63000*micro_ratio; //Standby position M
+const long M_open = 63000*micro_ratio; //Open position for the claws
 const uint Mgear = 100;       //M motor gearbox
-const long M_ser = 106000;         //Active position M
+const long M_ser = 53000*micro_ratio;         //Active position M
 
 volatile int8_t status = -1;
 volatile int8_t* Pstatus = &status;
