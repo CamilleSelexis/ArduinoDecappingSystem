@@ -45,7 +45,7 @@ void Ref()  {
 }
 
 void refZ() {
-  ZSPoint->move(-400000**micro_ratio);    //Go up and search limit
+  ZSPoint->move(-400000*micro_ratio);    //Go up and search limit
   RPC1.println("Going Up to find my limits");
   while(digitalRead(pin_BZ)){stepperZ.run();}//interrupt stop
   deBuff();
