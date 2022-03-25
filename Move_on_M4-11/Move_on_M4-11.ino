@@ -39,7 +39,7 @@ const long motor_step_rot = 200;  //Number of steps in rot of the motors
 const long micro_ratio = 2; //Microsteps ratio
 const long screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 20;        //Min pulse width in us
-const long X_pos = 32650*micro_ratio;   //Position of the basket under the arm
+const long X_pos = 32600*micro_ratio;   //Position of the basket under the arm
 const long Xzero_offset = 5000*micro_ratio; //Standby position X 
 const uint Xgear = 5;        //X motor gearbox
 
@@ -121,7 +121,7 @@ void setup() {
   //Sets the direction of X,Z,C,M the right way ************************************************
   stepperX.setPinsInverted(true,true,true);
   stepperZ.setPinsInverted(false,true,true);
-  stepperC.setPinsInverted(true,true,true);
+  stepperC.setPinsInverted(false,true,true);
   stepperM.setPinsInverted(true,true,true); 
   
   RPC1.begin();

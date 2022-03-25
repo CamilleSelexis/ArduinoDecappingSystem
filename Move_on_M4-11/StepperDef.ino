@@ -10,7 +10,7 @@ void stepper_std(){
   ZSPoint->setMinPulseWidth(MPW);
 
   CSPoint->setMaxSpeed(9000); //9000
-  CSPoint->setAcceleration(7000);
+  CSPoint->setAcceleration(6000);
   CSPoint->setMinPulseWidth(MPW);
 
   MSPoint->setMaxSpeed(10000); //10000
