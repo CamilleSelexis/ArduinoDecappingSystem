@@ -48,3 +48,16 @@ bool goRefM() {
   *Pstatus = 9;
   return true;
 }
+bool goToStandby() {
+  *Pstatus = 10;
+  return true;
+}
+bool goDecap(long Cpos) {
+  *Pstatus = 11;
+  return true;
+}
+
+bool goRecap() {
+  *Pstatus = 12;
+  return true;
+}

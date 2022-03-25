@@ -25,8 +25,11 @@ long GetPos(){
   Result[0] = 0;
   float avg[ly];
   float mvt[ly-2*n];
+  uint8_t framebuff[320*240];
+  uint8_t *Pfbuff = framebuff;
 
-  if (cam.grab(Pfb) == 0){
+  if (cam.grabFrame(fb,3000) == 0){
+    Pfbuff = fb.getBuffer();
     Serial.println("Snapshot");    
     }else{Serial.println("Cam capture failed");
       return 0;    
@@ -35,7 +38,7 @@ long GetPos(){
       uint8_t k = 0;
       for(uint8_t i = cropy[0]; i<=cropy[1]; i++){
         for(uint8_t j = cropx[0]; j<=cropx[1]; j++){
-              avg[k] += fb[i*320+j]; //Compute avg on the length () to obtain a 1xly vector
+              avg[k] += framebuff[i*320+j]; //Compute avg on the length () to obtain a 1xly vector
         }
         k++; //k == i
       }
@@ -91,7 +94,7 @@ long GetPos(){
 
 //Calls GetPos() and check its reliability over 2 iterations
 long finalPos() {
-  cam.standby(false);
+  cam.setStandby(false);
 
   uint8_t tol = 100;
   uint8_t i = 0;
@@ -109,6 +112,6 @@ long finalPos() {
     i++;
   } //Fait une loop pour essayer d'avoir un résultat stable, tant que diff > tol
 
-  cam.standby(true);
+  cam.setStandby(true);
   return ceil((temp1+temp2)*0.5);
 }

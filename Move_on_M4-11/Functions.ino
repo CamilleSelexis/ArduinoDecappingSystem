@@ -2,7 +2,6 @@
 
 //Ref all home Initialisation
 void Ref()  {
-  unsigned long setup_start_time = millis();
   noInterrupts(); //Disable the interrupts during init as we want to touch the limits
   stopALL;
   deBuff();
@@ -11,37 +10,38 @@ void Ref()  {
   if(!digitalRead(pin_BZ)){ //Get away from Z baumer
     RPC1.println("On the Z baumer, going away");
     ZSPoint->move(10000);
-    while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
+    while(ZSPoint->isRunning()){stepperZ.run();}
   }
   if(!digitalRead(pin_BX)){ //Get away from X baumer
     RPC1.println("On the X baumer, going away");
     XSPoint->move(5000);
-    while(abs(XSPoint->distanceToGo())>0){stepperX.run();}
+    while(XSPoint->isRunning()){stepperX.run();}
   }
   MSPoint->move(7500);        //Let go of a potential lid
   CSPoint->move(-5000);
-  while(abs(MSPoint->distanceToGo())>0||abs(CSPoint->distanceToGo())>0){runMC;}
+  while(MSPoint->isRunning()||CSPoint->isRunning()){runMC;}
   deBuff();
   //----------------------------Set Z 0 Position-----------------------
-  refZ();
-  //----------------------------------Set X 0 Position -----------------
+  //refZ();
+//  //----------------------------------Set X 0 Position -----------------
   refX();
-  //----------------------------Set the origin for the claws
-  refM();
+//  //----------------------------Set the origin for the claws
+  //refM();
+  refMZ();
   //-----------------------------Set the origin for the rotation
-  interrupts();
+  interrupts(); //re-enable interrupts to do analog read
   refC();
   while(XSPoint->isRunning()||ZSPoint->isRunning()||MSPoint->isRunning()){
     runALL;
   }
   stopALL;
   stepper_std();
-  //Can be more compact
+
   MSPoint->moveTo(Mzero_offset);
   ZSPoint->moveTo(Zzero_offset);
   XSPoint->moveTo(Xzero_offset); 
   runXZMC_toTargets(Xzero_offset,Zzero_offset,Mzero_offset,0);
-  RPC1.println("done, I took " + String(millis()-setup_start_time) + " [ms] to initialize");
+  RPC1.println("Init done");
 }
 
 void refZ() {
@@ -50,7 +50,7 @@ void refZ() {
   while(digitalRead(pin_BZ)){stepperZ.run();}//interrupt stop
   deBuff();
   ZSPoint->move(6000);        // leave the switch
-  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
+  while(ZSPoint->isRunning()){stepperZ.run();}
   deBuff();
   slow_initZ(); //slow the stepperZ
   ZSPoint->move(-10000);       //Go back a second time
@@ -58,7 +58,7 @@ void refZ() {
   deBuff();
   ZSPoint->setCurrentPosition(0);
   ZSPoint->move(3000);    //Get away from the switch
-  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
+  while(ZSPoint->isRunning()){stepperZ.run();}
   RPC1.println("Ref Z is done");
 }
 void refX() {
@@ -68,15 +68,15 @@ void refX() {
   while(digitalRead(pin_BX)){stepperX.run();}
   deBuff();
   XSPoint->move(3000); //Get away from the Baumer X
-  while(abs(XSPoint->distanceToGo())>0){stepperX.run();}
+  while(XSPoint->isRunning()){stepperX.run();}
   deBuff();
   slow_initX();
-  XSPoint->move(-3500);    //Go back a second time
+  XSPoint->move(-10000);    //Go back a second time
   while(digitalRead(pin_BX)){stepperX.run();}
   deBuff();
   XSPoint->setCurrentPosition(0);
   XSPoint->move(3000);
-  while(abs(XSPoint->distanceToGo())>0){stepperX.run();}
+  while(XSPoint->isRunning()){stepperX.run();}
   deBuff();
   RPC1.println("Ref X is done");
 }
@@ -85,16 +85,54 @@ void refM() {
   while(!digitalRead(pin_contact)){stepperM.run();}
   deBuff();
   MSPoint->move(8000);
-  while(abs(MSPoint->distanceToGo())>0){stepperM.run();}
+  while(MSPoint->isRunning()){stepperM.run();}
   deBuff();
   slow_initM();
   MSPoint->move(-10000);    //Go back a second time
   while(!digitalRead(pin_contact)){stepperM.run();}  //Interupt contain the stp_Z move to 2000
   MSPoint->setCurrentPosition(0);
   MSPoint->move(3000); //Go to an absolute position
-  while(abs(MSPoint->distanceToGo())>0){stepperM.run();}
+  while(MSPoint->isRunning()){stepperM.run();}
   RPC1.println("Ref M is done");
 }
+
+void refMZ() {
+  RPC1.println("Starting parrallel init for Z and M");
+  deBuff();
+  ZSPoint->move(-2000000);    //Go up and search limit
+  MSPoint->move(-2000000);  //Go to first contact closure
+  bool phase_1 = true;
+  while(phase_1){
+    if(!digitalRead(pin_BZ)){ZSPoint->move(6000);} //Change dir of Z
+    if(digitalRead(pin_contact)){MSPoint->move(8000);} // Change dir of M
+    runMZ;
+    if(!ZSPoint->isRunning()&&!MSPoint->isRunning()){
+      phase_1 = false;
+    }
+  }
+  deBuff();
+  slow_initZ();
+  slow_initM();
+  ZSPoint->move(-10000);       //Go back a second time
+  MSPoint->move(-10000);    //Go back a second time
+  bool phase_2 = true;
+  while(phase_2){
+    if(!digitalRead(pin_BZ)){ZSPoint->setCurrentPosition(0);ZSPoint->move(0);}
+    if(digitalRead(pin_contact)){MSPoint->setCurrentPosition(0);MSPoint->move(0);}
+    runMZ;
+    if(!ZSPoint->isRunning()&&!MSPoint->isRunning()){
+      phase_2 = false;
+    }
+  }
+  deBuff();
+  ZSPoint->move(3000);       //Go away
+  MSPoint->move(5000);    //Go away
+  while(ZSPoint->isRunning()&&MSPoint->isRunning()){
+    runMZ;
+  }
+  RPC1.println("Parrallel init done for Z and M");
+}
+
 void refC() {
   slow_initC();
   bool barrier= false;
@@ -133,36 +171,54 @@ void refC() {
     }
   }
 }
+void ToStandby(){
+  RPC1.println("Going back to standby position");
+  XSPoint->moveTo(Xzero_offset);
+  ZSPoint->moveTo(Zzero_offset);
+  MSPoint->moveTo(Mzero_offset);
+  CSPoint->moveTo(Czero_offset);
+  deBuff();
+  runXZMC_toTargets(Xzero_offset,Zzero_offset,Mzero_offset,Czero_offset);
+}
+
+void Decap(long C_pos){
+  Get_flask();
+  Align(C_pos);
+  Getdown();
+  *PZ_screw = Unscrew();
+}
 //Get the bottle an bring it back under the arm
 void Get_flask(){
-
+  
+  deBuff();
   XSPoint->moveTo(X_pos);
   ZSPoint->moveTo(Z_inter);
-//  while(abs(XSPoint->distanceToGo())>0){runXZ;}
-//  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
   runXZMC_toTargets(X_pos,Z_inter,0,0);
-  deBuff();
-  RPC1.println("Closed the X axis to get the flask");
+  RPC1.println("Decap in position");
 }
 
 //Tightening the claws according to the info from video
 //does not tighten at all lol
 //Align the claws with the cap
 void Align(long C_pos) {
-  RPC1.println("Align the claws with the cap");
-  CSPoint->moveTo(C_pos);
-  while(abs(CSPoint->distanceToGo())>0){stepperC.run();}
+  
   deBuff();
+  RPC1.println("Align the claws with the cap");
+  RPC1.println("C pos received " + String(C_pos));
+  CSPoint->moveTo(C_pos);
+  while(CSPoint->isRunning()){stepperC.run();}
 }
 
 void Getdown(){ //Get down on the Cap and once arrived, tighten the claws
-    RPC1.println("Going down, and then tightening the claws");
+  
+  deBuff();
+  RPC1.println("Going down, and then tightening the claws");
   ZSPoint->moveTo(Z_pos);
-  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
+  while(ZSPoint->isRunning()){stepperZ.run();}
   deBuff();
   
   MSPoint->moveTo(M_ser);
-  while(abs(MSPoint->distanceToGo())>0){stepperM.run();}
+  while(MSPoint->isRunning()){stepperM.run();}
   deBuff();
 
 }
@@ -171,52 +227,60 @@ void Getdown(){ //Get down on the Cap and once arrived, tighten the claws
 long Unscrew() {
 
   long startup = ceil(0.1*stp1tour);
-  long C_end = 0;
+  long Z_end = 0; //End position of Z
   RPC1.println("Start unscrewing of the cap");
-  delay(1000);
   stepper_screwspd();
   RPC1.println("Preload the spring");
   ZSPoint->move(Z_prec);   //Z spring pre load
-  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
-
-  delay(1000);
+  while(ZSPoint->isRunning()){stepperZ.run();}
   RPC1.println("Start the rotation");
   deBuff();
-  CSPoint->move(-ceil(0.75*stp1tour));     //Start rotation without Z movment
-  //CSPoint->move(-2*stp1tour);     //Chuck rotation without Z movment
+  CSPoint->move(-ceil(0.8*stp1tour));     //Start rotation without Z movment
   while(abs(CSPoint->distanceToGo())<startup){stepperC.run();}  //After "Startup", Z follow the movment
   ZSPoint->moveTo(Zzero_offset);//Z is at 464000 must go to 200000
-  delay(1000);
-  RPC1.println("COntinue the rotation while going up");
-  while(abs(CSPoint->distanceToGo())>0){runCZ;}
-  C_end = ZSPoint->currentPosition();     //when chuck stop, we note Z position
+  RPC1.println("Continue the rotation while going up");
+  while(CSPoint->isRunning()){runCZ;}
+  Z_end = ZSPoint->currentPosition();     //when chuck stop, we note Z position
   stepper_std();
-  while(abs(ZSPoint->distanceToGo())>90000){stepperZ.run();}
+  while(abs(ZSPoint->distanceToGo())>160000){stepperZ.run();}
   XSPoint->moveTo(Xzero_offset);
-  while(abs(ZSPoint->distanceToGo())>0){runXZ;}
-  while(abs(XSPoint->distanceToGo())>0){stepperX.run();}
+  while(ZSPoint->isRunning()||XSPoint->isRunning()){runXZ;}
   deBuff();
 
   RPC1.println("Removed the cap from the bottle");
-  return C_end;
+  return Z_end;
+}
+void Recap() {
+  Get_flask();
+  reScrew(Z_screw);
+  ToStandby();
 }
 //Screwing
-void reScrew(long C_start) {  //Takes as input the point where C stopped rotating 
+void reScrew(long Z_screw) {  //Takes as input the point where C stopped rotating 
 
- 
-  ZSPoint->moveTo(C_start);
-  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
+  RPC1.println("Go back to screw position");
+  ZSPoint->moveTo(Z_screw);
+  while(ZSPoint->isRunning()){stepperZ.run();}
   deBuff();
   stepper_screwspd();
-  CSPoint->move(2*stp1tour);
+  RPC1.println("Starting the screwing");
+  CSPoint->move(0.8*stp1tour);
   ZSPoint->moveTo(Z_pos+Z_prec);
-  while(abs(CSPoint->distanceToGo())>0){runCZ;}
+  while(CSPoint->isRunning()){runCZ;}
   ZSPoint->move(0);
   deBuff();
   stepper_std();
+  RPC1.println("Cap screwed back, opening claws and then going away");
+  //Untighten the claws
+  MSPoint->moveTo(Mzero_offset);
+  while(MSPoint->isRunning()){stepperM.run();}
+  deBuff();
+  //Go up a bit
+  ZSPoint->moveTo(Zzero_offset);
+  while(abs(ZSPoint->distanceToGo())>160000){stepperZ.run();}
 }
 
-//Bringing back the Flask
+//Unengage on the X axis
 void Bringback() {
 
   XSPoint->moveTo(Xzero_offset);
@@ -240,9 +304,9 @@ void untigh_up() {
 
 }
 
-long mmtostep(long dist, uint gear, float transmission) {
-  return floor((dist / transmission) * motor_step_rot * gear);
-}
+//long mmtostep(long dist, uint gear, float transmission) {
+//  return floor((dist / transmission) * motor_step_rot * gear);
+//}
 
 bool isMVT() {
   return (ZSPoint->isRunning() || MSPoint->isRunning() || XSPoint->isRunning() || CSPoint->isRunning());

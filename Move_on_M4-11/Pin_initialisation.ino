@@ -37,8 +37,8 @@ bool checkSens(uint thres) { //Check if the optical barrier is in front or not o
 }
 
 void deBuff() {
-  for(uint8_t i = 0; i<20; i++){
-    runALL;
-    delayMicroseconds(10);
-  }
+//  for(uint8_t i = 0; i<20; i++){
+//    runALL;
+//    delayMicroseconds(10);
+//  }
 }

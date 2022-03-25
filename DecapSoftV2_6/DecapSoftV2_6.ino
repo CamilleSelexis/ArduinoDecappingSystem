@@ -15,6 +15,8 @@ Vision not yet verified
 
 #include "Arduino.h"
 #include "RPC.h"
+#include "himax.h"
+HM01B0 himax;
 using namespace rtos;
 
 #include <stdint.h>
@@ -46,9 +48,10 @@ volatile bool *Pworking = &M4work;     //N'est pas utilisé pour le moment mais 
 
 int baud = 115200;          //Baud rate of the serial comunication
 
-CameraClass cam;
-uint8_t fb[320*240];        //Buffer for the image capture
-uint8_t *Pfb = fb; 
+Camera cam(himax);
+#define IMAGE_MODE CAMERA_GRAYSCALE
+//uint8_t fb[320*240];        //Buffer for the image capture
+FrameBuffer fb(320,240,1);//*Pfb = fb; 
 
 const uint8_t cropx[2] = {100,180};    //Size of the cropped image
 const uint8_t cropy[2] = {90,230};
@@ -82,8 +85,8 @@ void setup(){
 
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
-//  cam.begin(CAMERA_R320x240, 15);   //initialise the camera
-//  cam.standby(true);                //Put it in standby mode
+  cam.begin(CAMERA_R320x240, IMAGE_MODE, 15);   //initialise the camera
+//  cam.setStandby(true);                //Put it in standby mode
                  //Initialise the RPC coms, also boots the M4
   
   Serial.println("Ethernet Coms starting...");
