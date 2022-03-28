@@ -36,7 +36,7 @@ using namespace rtos;
 const int LON = LOW; // Voltage level is inverted for the LED
 const int LOFF = HIGH;
 const long motor_step_rot = 200;  //Number of steps in rot of the motors
-const long micro_ratio = 2; //Microsteps ratio
+const long micro_ratio = 4; //Microsteps ratio
 const long screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 20;        //Min pulse width in us
 const long X_pos = 32600*micro_ratio;   //Position of the basket under the arm
