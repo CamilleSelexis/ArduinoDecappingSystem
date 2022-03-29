@@ -3,8 +3,6 @@
 void pin_init() {
   pinMode(pin_photo,INPUT);           //Photo-detector - C axis zero
   pinMode(pin_contact,INPUT);         //Contacteur - M axis zero
-  pinMode(pin_BX,INPUT_PULLDOWN);     //X axis zero
-  attachInterrupt(digitalPinToInterrupt(pin_BX), reset_X, FALLING); 
   pinMode(pin_BZ,INPUT_PULLDOWN);     //Z-axis zero
   attachInterrupt(digitalPinToInterrupt(pin_BZ), reset_Z, FALLING);
 }
@@ -13,13 +11,8 @@ void pin_reinit(){
   pinMode(D2,OUTPUT); //Step M
   pinMode(D3,OUTPUT); //Step Z
   pinMode(D4,OUTPUT); //Step C
-  pinMode(D5,OUTPUT); //Step X
   pinMode(D13,OUTPUT); //Direction X,M
   pinMode(D14,OUTPUT); //Direction Z,C
-}
-
-void reset_X()  {
-  XSPoint->stop();
 }
 
 void reset_Z()  {

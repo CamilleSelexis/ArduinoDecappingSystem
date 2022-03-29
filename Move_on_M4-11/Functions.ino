@@ -12,26 +12,19 @@ void Ref()  {
     ZSPoint->move(5000*micro_ratio);
     while(ZSPoint->isRunning()){stepperZ.run();}
   }
-  if(!digitalRead(pin_BX)){ //Get away from X baumer
-    RPC1.println("On the X baumer, going away");
-    XSPoint->move(2500*micro_ratio);
-    while(XSPoint->isRunning()){stepperX.run();}
-  }
   MSPoint->move(4000*micro_ratio);        //Let go of a potential lid
   CSPoint->move(-2500*micro_ratio);
   while(MSPoint->isRunning()||CSPoint->isRunning()){runMC;}
   deBuff();
   //----------------------------Set Z 0 Position-----------------------
   //refZ();
-//  //----------------------------------Set X 0 Position -----------------
-  refX();
 //  //----------------------------Set the origin for the claws
   //refM();
   refMZ();
   //-----------------------------Set the origin for the rotation
   interrupts(); //re-enable interrupts to do analog read
   refC();
-  while(XSPoint->isRunning()||ZSPoint->isRunning()||MSPoint->isRunning()){
+  while(ZSPoint->isRunning()||MSPoint->isRunning()){
     runALL;
   }
   stopALL;
@@ -39,8 +32,9 @@ void Ref()  {
 
   MSPoint->moveTo(Mzero_offset);
   ZSPoint->moveTo(Zzero_offset);
-  XSPoint->moveTo(Xzero_offset); 
-  runXZMC_toTargets(Xzero_offset,Zzero_offset,Mzero_offset,0);
+  while(ZSPoint->isRunning()||MSPoint->isRunning()){
+    runALL;
+  }
   RPC1.println("Init done");
 }
 
@@ -60,25 +54,6 @@ void refZ() {
   ZSPoint->move(1500*micro_ratio);    //Get away from the switch
   while(ZSPoint->isRunning()){stepperZ.run();}
   RPC1.println("Ref Z is done");
-}
-void refX() {
-  deBuff();
-  XSPoint->move(-1000000*micro_ratio);    //Go far from the platform, search limit
-  RPC1.println("Going away to find my limits");
-  while(digitalRead(pin_BX)){stepperX.run();}
-  deBuff();
-  XSPoint->move(1500*micro_ratio); //Get away from the Baumer X
-  while(XSPoint->isRunning()){stepperX.run();}
-  deBuff();
-  slow_initX();
-  XSPoint->move(-5000*micro_ratio);    //Go back a second time
-  while(digitalRead(pin_BX)){stepperX.run();}
-  deBuff();
-  XSPoint->setCurrentPosition(0);
-  XSPoint->move(3000*micro_ratio);
-  while(XSPoint->isRunning()){stepperX.run();}
-  deBuff();
-  RPC1.println("Ref X is done");
 }
 void refM() {
   MSPoint->move(-1000000*micro_ratio);  //Go to first contact closure
@@ -173,7 +148,6 @@ void refC() {
 }
 void ToStandby(){
   RPC1.println("Going back to standby position");
-  XSPoint->moveTo(Xzero_offset);
   ZSPoint->moveTo(Zzero_offset);
   MSPoint->moveTo(Mzero_offset);
   CSPoint->moveTo(Czero_offset);
@@ -313,47 +287,42 @@ bool isMVT() {
 }
 
 //Run all motors to their absolute targets
-void runXZMC_toTargets(long target_x, long target_z,long target_m, long target_c) {
+void runZMC_toTargets(long target_z,long target_m, long target_c) {
   
-  long pos_x = XSPoint->currentPosition();
   long pos_z = ZSPoint->currentPosition();
   long pos_m = MSPoint->currentPosition();
   long pos_c = CSPoint->currentPosition();
-  if(target_x == 0)target_x = pos_x;
   if(target_z == 0)target_z = pos_z;
   if(target_m == 0)target_m = pos_m;
   if(target_c == 0)target_c = pos_c;
   
-  long dir_xm = (target_x-pos_x)*(target_m-pos_m);
+  long dir_m = (target_m-pos_m);
   long dir_zc = (target_z-pos_z)*(target_c-pos_c);
 
-  if(dir_xm>=0 && dir_zc>=0) {
+  if(dir_m>=0 && dir_zc>=0) {
     //X & M running in same dir
     //Can operate at the same time
-    while(MSPoint->isRunning()||XSPoint->isRunning()||CSPoint->isRunning()||ZSPoint->isRunning()){
+    while(MSPoint->isRunning()||CSPoint->isRunning()||ZSPoint->isRunning()){
       runALL;
     }
   }
-  else if(dir_xm>=0 && dir_zc <0){//Run XMZ & C
+  else if(dir_m>=0 && dir_zc <0){//Run XMZ & C
     while(ZSPoint->isRunning()){ //Run all but C until Z is done
-      runXMZ;
+      runMZ;
     }
     while(MSPoint->isRunning()||CSPoint->isRunning()||ZSPoint->isRunning()){
       runALL;
     }
     
   }
-  else if(dir_xm<0 && dir_zc >=0){//Run XCZ & M
-    while(XSPoint->isRunning()){ //Run all but M until X is done
-      runXCZ;
-    }
+  else if(dir_m<0 && dir_zc >=0){//Run XCZ & M
     while(MSPoint->isRunning()||CSPoint->isRunning()||ZSPoint->isRunning()){
       runALL;
     }
   }
-  else if(dir_xm<0 && dir_zc<0){ //Run XZ & MC
-    while(XSPoint->isRunning()||ZSPoint->isRunning()){
-      runXZ;
+  else if(dir_m<0 && dir_zc<0){ //Run XZ & MC
+    while(ZSPoint->isRunning()){
+      stepperZ.run();
     }
     while(MSPoint->isRunning()||CSPoint->isRunning()){
       runMC;

@@ -4,6 +4,7 @@ Selexis Genève 20.08.2021
 To run on an Arduino Portenta H7 with a vision shield
 M4 core
 In coordination with DecapSoft on M7 core
+Removed X Axis
 */
 
 #include <AccelStepper.h>
@@ -19,16 +20,11 @@ using namespace rtos;
 //#define runXC    stepperX.run();stepperC.run()
 #define runMC    stepperM.run();stepperC.run()
 #define runMZ    stepperM.run();stepperZ.run()
-#define runXZ    stepperX.run();stepperZ.run()
-#define runXMZ   stepperX.run();stepperM.run();stepperZ.run()
-#define runXCZ   stepperX.run();stepperC.run();stepperZ.run()
-#define runXCM   stepperX.run();stepperC.run();stepperM.run()
-#define runALL   stepperX.run();stepperC.run();stepperM.run();stepperZ.run()
-#define stopALL  stepperX.stop();stepperC.stop();stepperM.stop();stepperZ.stop();
+#define runALL   stepperC.run();stepperM.run();stepperZ.run()
+#define stopALL  stepperC.stop();stepperM.stop();stepperZ.stop();
 #define pin_contact A2 //Used on M
 #define pin_photo   A0 //Photodetecteur C
 
-#define pin_BX      D6
 #define pin_BZ      D0
 #define DIR_MX      D13
 #define DIR_CZ      D14
@@ -39,9 +35,6 @@ const long motor_step_rot = 200;  //Number of steps in rot of the motors
 const long micro_ratio = 4; //Microsteps ratio
 const long screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 10;        //Min pulse width in us
-const long X_pos = 32600*micro_ratio;   //Position of the basket under the arm
-const long Xzero_offset = 5000*micro_ratio; //Standby position X 
-const uint Xgear = 5;        //X motor gearbox
 
 const long Zzero_offset = 100000*micro_ratio; //Standby position Z [steps]
 const long Z_inter = Zzero_offset+90000*micro_ratio; //Intermediate position
@@ -74,12 +67,6 @@ long Z_screw;
 long* PZ_screw = &Z_screw;
 
 //-----Stepper Definition------//
-//Stepper X
-AccelStepper stepperX(
- AccelStepper::DRIVER,   //Motor type
- D5,                    //Step signal
- D13,                   //Direction signal
- false);              //Motor enable on manual control
 
 //Stepper Z
 AccelStepper stepperZ(
@@ -102,7 +89,6 @@ AccelStepper stepperM(
  D13,                 //Direction signal D14
  false);            //Motor enable on manual control
 
-AccelStepper *XSPoint = &stepperX;    //Pointers to the accelsteppers objects
 AccelStepper *ZSPoint = &stepperZ;    //
 AccelStepper *CSPoint = &stepperC;    //
 AccelStepper *MSPoint = &stepperM;    //
@@ -115,11 +101,9 @@ void setup() {
   stepper_std();
   
   MSPoint->setCurrentPosition(Mzero_offset);
-  XSPoint->setCurrentPosition(Xzero_offset);
   ZSPoint->setCurrentPosition(Zzero_offset);
   
   //Sets the direction of X,Z,C,M the right way ************************************************
-  stepperX.setPinsInverted(false,true,true);
   stepperZ.setPinsInverted(true,true,true);
   stepperC.setPinsInverted(true,true,true);
   stepperM.setPinsInverted(false,true,true); 

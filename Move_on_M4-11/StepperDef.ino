@@ -1,10 +1,6 @@
 //Nominal stepper speed
 void stepper_std(){
 
-  XSPoint->setMaxSpeed(5000*micro_ratio); //10000
-  XSPoint->setAcceleration(3500*micro_ratio);
-  XSPoint->setMinPulseWidth(MPW);
-
   ZSPoint->setMaxSpeed(4500*micro_ratio); //9000
   ZSPoint->setAcceleration(3500*micro_ratio);
   ZSPoint->setMinPulseWidth(MPW);
@@ -40,10 +36,6 @@ void stepper_std(){
 //Stepper speed used during the initialisation
  void stepper_init()  {
 
-  XSPoint->setMaxSpeed(1100*micro_ratio);
-  XSPoint->setAcceleration(3000*micro_ratio);
-  XSPoint->setMinPulseWidth(MPW);
-
   ZSPoint->setMaxSpeed(2750*micro_ratio);
   ZSPoint->setAcceleration(3000*micro_ratio);
   ZSPoint->setMinPulseWidth(MPW);
@@ -60,11 +52,6 @@ void stepper_std(){
  void slow_initZ() {
   ZSPoint->setMaxSpeed(1000*micro_ratio);
   ZSPoint->setAcceleration(3000*micro_ratio);
- }
-
-void slow_initX() {
-  XSPoint->setMaxSpeed(750*micro_ratio);
-  XSPoint->setAcceleration(3000*micro_ratio);
  }
 
 void slow_initC() {
