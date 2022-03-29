@@ -1,20 +1,20 @@
 //Nominal stepper speed
 void stepper_std(){
 
-  XSPoint->setMaxSpeed(10000); //10000
-  XSPoint->setAcceleration(7000);
+  XSPoint->setMaxSpeed(5000*micro_ratio); //10000
+  XSPoint->setAcceleration(3500*micro_ratio);
   XSPoint->setMinPulseWidth(MPW);
 
-  ZSPoint->setMaxSpeed(9000); //9000
-  ZSPoint->setAcceleration(7000);
+  ZSPoint->setMaxSpeed(4500*micro_ratio); //9000
+  ZSPoint->setAcceleration(3500*micro_ratio);
   ZSPoint->setMinPulseWidth(MPW);
 
-  CSPoint->setMaxSpeed(9000); //9000
-  CSPoint->setAcceleration(6000);
+  CSPoint->setMaxSpeed(4500*micro_ratio); //9000
+  CSPoint->setAcceleration(3500*micro_ratio);
   CSPoint->setMinPulseWidth(MPW);
 
-  MSPoint->setMaxSpeed(10000); //10000
-  MSPoint->setAcceleration(7000);
+  MSPoint->setMaxSpeed(5000*micro_ratio); //10000
+  MSPoint->setAcceleration(3500*micro_ratio);
   MSPoint->setMinPulseWidth(MPW);
 
  }
@@ -40,39 +40,39 @@ void stepper_std(){
 //Stepper speed used during the initialisation
  void stepper_init()  {
 
-  XSPoint->setMaxSpeed(2200);
-  XSPoint->setAcceleration(6000);
+  XSPoint->setMaxSpeed(1100*micro_ratio);
+  XSPoint->setAcceleration(3000*micro_ratio);
   XSPoint->setMinPulseWidth(MPW);
 
-  ZSPoint->setMaxSpeed(5500);
-  ZSPoint->setAcceleration(6000);
+  ZSPoint->setMaxSpeed(2750*micro_ratio);
+  ZSPoint->setAcceleration(3000*micro_ratio);
   ZSPoint->setMinPulseWidth(MPW);
 
-  CSPoint->setMaxSpeed(5500);
-  CSPoint->setAcceleration(5000);
+  CSPoint->setMaxSpeed(2750*micro_ratio);
+  CSPoint->setAcceleration(2500*micro_ratio);
   CSPoint->setMinPulseWidth(MPW);
 
-  MSPoint->setMaxSpeed(3300);
-  MSPoint->setAcceleration(4000);
+  MSPoint->setMaxSpeed(1650*micro_ratio);
+  MSPoint->setAcceleration(2000*micro_ratio);
   MSPoint->setMinPulseWidth(MPW);
  }
 
  void slow_initZ() {
-  ZSPoint->setMaxSpeed(2000);
-  ZSPoint->setAcceleration(6000);
+  ZSPoint->setMaxSpeed(1000*micro_ratio);
+  ZSPoint->setAcceleration(3000*micro_ratio);
  }
 
 void slow_initX() {
-  XSPoint->setMaxSpeed(1500);
-  XSPoint->setAcceleration(6000);
+  XSPoint->setMaxSpeed(750*micro_ratio);
+  XSPoint->setAcceleration(3000*micro_ratio);
  }
 
 void slow_initC() {
-  CSPoint->setMaxSpeed(5000);
-  CSPoint->setAcceleration(5000);
+  CSPoint->setMaxSpeed(2500*micro_ratio);
+  CSPoint->setAcceleration(2500*micro_ratio);
  }
 
 void slow_initM() {
-  MSPoint->setMaxSpeed(2000);
-  MSPoint->setAcceleration(3000);
+  MSPoint->setMaxSpeed(1000*micro_ratio);
+  MSPoint->setAcceleration(1500*micro_ratio);
  }

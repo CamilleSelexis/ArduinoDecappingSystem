@@ -38,7 +38,7 @@ const int LOFF = HIGH;
 const long motor_step_rot = 200;  //Number of steps in rot of the motors
 const long micro_ratio = 4; //Microsteps ratio
 const long screw_time = 4; //Time to screw/unscrew [s]
-const uint MPW = 20;        //Min pulse width in us
+const uint MPW = 10;        //Min pulse width in us
 const long X_pos = 32600*micro_ratio;   //Position of the basket under the arm
 const long Xzero_offset = 5000*micro_ratio; //Standby position X 
 const uint Xgear = 5;        //X motor gearbox
@@ -119,10 +119,10 @@ void setup() {
   ZSPoint->setCurrentPosition(Zzero_offset);
   
   //Sets the direction of X,Z,C,M the right way ************************************************
-  stepperX.setPinsInverted(true,true,true);
-  stepperZ.setPinsInverted(false,true,true);
-  stepperC.setPinsInverted(false,true,true);
-  stepperM.setPinsInverted(true,true,true); 
+  stepperX.setPinsInverted(false,true,true);
+  stepperZ.setPinsInverted(true,true,true);
+  stepperC.setPinsInverted(true,true,true);
+  stepperM.setPinsInverted(false,true,true); 
   
   RPC1.begin();
   RPC1.bind("Ref",Refgo);
