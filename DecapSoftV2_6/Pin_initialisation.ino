@@ -8,7 +8,6 @@ void pin_init(){
  pinMode(A0,INPUT);      //Photo-detector - C axis zero (on M4)
  pinMode(A2,INPUT);      //Contacteur - M axis zero (on M4)
  pinMode(D0,INPUT);      //Baumer Z axis zero (on M4)
- pinMode(D6,INPUT);      //Baumer X axis zero (on M4)
 }
 
 void M4working(bool working){

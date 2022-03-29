@@ -215,7 +215,7 @@ long Unscrew() {
   while(CSPoint->isRunning()){runCZ;}
   Z_end = ZSPoint->currentPosition();     //when chuck stop, we note Z position
   stepper_std();
-  while(abs(ZSPoint->distanceToGo())>80000*micro_ratio){stepperZ.run();}
+  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
   while(ZSPoint->isRunning()){stepperZ.run();}
   deBuff();
 
@@ -263,7 +263,7 @@ void untigh_up() {
   MSPoint->moveTo(Mzero_offset);
   while(abs(MSPoint->distanceToGo()>0)){stepperM.run();}
   ZSPoint->moveTo(Zzero_offset);
-  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run()}
+  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run();}
 
 }
 
