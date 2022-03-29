@@ -152,7 +152,7 @@ void ToStandby(){
   MSPoint->moveTo(Mzero_offset);
   CSPoint->moveTo(Czero_offset);
   deBuff();
-  runXZMC_toTargets(Xzero_offset,Zzero_offset,Mzero_offset,Czero_offset);
+  runZMC_toTargets(Zzero_offset,Mzero_offset,Czero_offset);
 }
 
 void Decap(long C_pos){
@@ -165,9 +165,8 @@ void Decap(long C_pos){
 void Get_flask(){
   
   deBuff();
-  XSPoint->moveTo(X_pos);
   ZSPoint->moveTo(Z_inter);
-  runXZMC_toTargets(X_pos,Z_inter,0,0);
+  runZMC_toTargets(Z_inter,0,0);
   RPC1.println("Decap in position");
 }
 
@@ -217,8 +216,7 @@ long Unscrew() {
   Z_end = ZSPoint->currentPosition();     //when chuck stop, we note Z position
   stepper_std();
   while(abs(ZSPoint->distanceToGo())>80000*micro_ratio){stepperZ.run();}
-  XSPoint->moveTo(Xzero_offset);
-  while(ZSPoint->isRunning()||XSPoint->isRunning()){runXZ;}
+  while(ZSPoint->isRunning()){stepperZ.run();}
   deBuff();
 
   RPC1.println("Removed the cap from the bottle");
@@ -256,9 +254,6 @@ void reScrew(long Z_screw) {  //Takes as input the point where C stopped rotatin
 
 //Unengage on the X axis
 void Bringback() {
-
-  XSPoint->moveTo(Xzero_offset);
-  while(abs(XSPoint->distanceToGo())>0){stepperX.run();}
   deBuff();
 }
 
@@ -267,14 +262,8 @@ void untigh_up() {
 
   MSPoint->moveTo(Mzero_offset);
   while(abs(MSPoint->distanceToGo()>0)){stepperM.run();}
-  deBuff();
   ZSPoint->moveTo(Zzero_offset);
-  while(abs(ZSPoint->distanceToGo())>40000*micro_ratio){stepperZ.run();}
-  XSPoint->moveTo(Xzero_offset);
-  while(abs(ZSPoint->distanceToGo())>0){runXZ;}
-  deBuff();
-  while(abs(XSPoint->distanceToGo())>0){stepperX.run();}
-  deBuff();
+  while(abs(ZSPoint->distanceToGo())>0){stepperZ.run()}
 
 }
 
@@ -283,7 +272,7 @@ void untigh_up() {
 //}
 
 bool isMVT() {
-  return (ZSPoint->isRunning() || MSPoint->isRunning() || XSPoint->isRunning() || CSPoint->isRunning());
+  return (ZSPoint->isRunning()||MSPoint->isRunning()||CSPoint->isRunning());
 }
 
 //Run all motors to their absolute targets
