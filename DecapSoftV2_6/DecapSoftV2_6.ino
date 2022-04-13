@@ -49,18 +49,21 @@ int baud = 115200;          //Baud rate of the serial comunication
 CameraClass cam;
 uint8_t fb[320*240];        //Buffer for the image capture
 uint8_t *Pfb = fb; 
-
-const uint8_t cropx[2] = {100,180};    //Size of the cropped image
-const uint8_t cropy[2] = {90,230};
-const uint8_t ly = cropy[1]-cropy[0]; //Length of the cropped dimmensions
-const uint8_t lx = cropx[1]-cropx[0];
+const int imgH = 240;
+const int imgW = 320;
+//const uint8_t cropx[2] = {120,140};    //Si ze of the cropped image
+//const uint8_t cropy[2] = {110,180};
+const int cropx[2] = {120,140};    //Si ze of the cropped image
+const int cropy[2] = {110,180};
+const int ly = cropy[1]-cropy[0]; //Length of the cropped dimmensions
+const int lx = cropx[1]-cropx[0];
 
 //Light depending parameters for the image detection (will probably need a tweek for each environement)
 //Try to change thres and n to have the minimum amount of markers detected while never having 0 of them.
 const uint8_t thres = 8;         //Threshold of image detection 2->10
 const uint8_t n = 2;             //Size of the moving average avg done on 2n+1
 
-//Once set calibration should stay the same
+//Calibration should be determined by the standby position
 const long calibration = 500;    //Rotation offset
 
  //Ethernet related ---------------------
@@ -75,14 +78,16 @@ EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52
 void setup(){
   bootM4();
   RPC1.begin(); 
+
   Serial.begin(baud); //Begin serial communication aka discussion through usb
+  while(!Serial);
   Serial.println("Serial Coms started. RPC1 starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
   digitalWrite(LEDB,LON);
 
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
-  if(cam.begin(CAMERA_R320x240, 15)== 0){
+  if(cam.begin(CAMERA_R320x240, 30)== 0){
     Serial.println("Cam initialised");//initialise the camera
   }
   else{
@@ -166,7 +171,7 @@ void loop() {
         }
         else if(currentLine.endsWith("capture")){
           Serial.println("Capture Routine");
-          Serial.println(finalPos());        
+          finalPos();        
           } 
         
           } 
