@@ -172,8 +172,11 @@ void loop() {
         else if(currentLine.endsWith("capture")){
           Serial.println("Capture Routine");
           finalPos();        
-          } 
-        
+          }
+        else if(currentLine.endsWith("Align")){
+          Serial.println("Alignment Routine");
+          Align();        
+          }      
           } 
       }     
 client.stop(); 

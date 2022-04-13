@@ -78,43 +78,43 @@ void Recap(){
     Serial.println("Recaping finished");
   }
 }
-void Decap_old(){
+void Align(){
   long decap_start_time = millis();
-  if(!isInit){Serial.println("The machine is not intialized");}else{
-  if(C_start){
-    Serial.println("The machine cannot decap with a prior decaping");
-  }else{
-    Serial.println("The machine will now start the decaping routine. Keep clear");
-    mvt_in;
-    motorON;
-    digitalWrite(pin_crydom,HIGH);
-    *Pworking = RPC1.call("Get_flask").as<bool>();
-    Wait();
-    motorOFF;
-    long C_pos = finalPos();
-
-    Serial.print("Camera capture returned the value : ");
-    Serial.println(C_pos);
-    motorON;
-    *Pworking = RPC1.call("Align",C_pos).as<bool>();
-    Wait();
-    *Pworking = RPC1.call("GetDown").as<bool>();
-    Wait();
-    *Pworking = RPC1.call("Unscrew").as<bool>();
-    Wait();
-    *CstartPoint = true;
-    //*Pworking = RPC1.call("Bringback").as<bool>();
-    //Wait();
-    motorOFF;
-    mvt_out;
-    digitalWrite(pin_crydom,LOW);
-    Serial.println("Decaping finished");
-    Serial.println("Decap routine took" + String(millis()-decap_start_time) + " ms to complete");
-    digitalWrite(LEDG,LOFF);
-    digitalWrite(LEDB,LON); //LEDB signals that a cap is being held
-
+  if(!isInit){
+    Serial.println("The machine is not intialized");
+    return; //if not init then do nothing
   }
-}}
+  else{
+    if(C_start){
+      Serial.println("The machine cannot decap with a prior decaping");
+    }
+    else{
+      Serial.println("The machine will now start the alignment routine. Keep clear");
+      long C_pos = finalPos();
+  
+      Serial.print("Camera capture returned the value : ");
+      Serial.println(C_pos);
+      mvt_in;
+      motorON;
+      digitalWrite(pin_crydom,HIGH);
+      *Pworking = RPC1.call("Align",C_pos).as<bool>();
+      Wait();
+      motorOFF;
+      mvt_out;
+      *CstartPoint = true;
+      digitalWrite(pin_crydom,LOW);
+      Serial.println("Alignement done");
+      Serial.println("Align routine took" + String(millis()-decap_start_time) + " ms to complete");
+      digitalWrite(LEDG,LON);
+      digitalWrite(LEDB,LON); //LEDB signals that a cap is being held
+  
+    }
+  }
+} 
+  
+  
+  
+  }
 
           
 void Recap_old(){
