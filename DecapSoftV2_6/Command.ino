@@ -45,7 +45,7 @@ void Decap(){
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
-      *Pworking = RPC1.call("Decap",C_pos).as<bool>();
+      *Pworking = RPC1.call("Decap",C_pos).as<long>();
       Wait();
       motorOFF;
       mvt_out;
@@ -97,7 +97,7 @@ void Align(){
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
-      *Pworking = RPC1.call("Align",C_pos).as<bool>();
+      *Pworking = RPC1.call("Align",C_pos).as<long>();
       Wait();
       motorOFF;
       mvt_out;
@@ -111,10 +111,6 @@ void Align(){
     }
   }
 } 
-  
-  
-  
-  }
 
           
 void Recap_old(){

@@ -114,9 +114,9 @@ long detectEdges() {
     }
   }
   Serial.print("Found : ");Serial.print(found);Serial.println(" edges");
-  long edge_position = ly/2;
+  long edge_position = 0;
   for(int i= 0; i<found; i++){
-    if(abs(edge_pos[i]-ly/2) < edge_position) edge_position = edge_pos[i];
+    if(abs(edge_pos[i]-ly/2) < abs(edge_position-ly/2)) edge_position = edge_pos[i];
   }
   Serial.print("Edge at position ");Serial.print(edge_position+ cropy[0]);Serial.println(" in the full picture");
   return edge_position + cropy[0];

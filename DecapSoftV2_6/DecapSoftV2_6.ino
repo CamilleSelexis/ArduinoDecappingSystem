@@ -54,7 +54,7 @@ const int imgW = 320;
 //const uint8_t cropx[2] = {120,140};    //Si ze of the cropped image
 //const uint8_t cropy[2] = {110,180};
 const int cropx[2] = {120,140};    //Si ze of the cropped image
-const int cropy[2] = {110,180};
+const int cropy[2] = {100,200};
 const int ly = cropy[1]-cropy[0]; //Length of the cropped dimmensions
 const int lx = cropx[1]-cropx[0];
 
