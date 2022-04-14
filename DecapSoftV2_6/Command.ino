@@ -9,6 +9,7 @@ void refAllHome(){ //Initialisation routine
   *Pworking = RPC1.call("Ref").as<bool>();
   Wait();
   motorOFF;     //motor disable
+  *CstartPoint = false;
   mvt_out;       //Led mvt off
   Serial.println("Init routine took" + String(millis()-init_start_time)+ " ms to complete");
   Serial.println("RefAllHome complete.");
@@ -45,7 +46,8 @@ void Decap(){
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
-      *Pworking = RPC1.call("Decap",C_pos).as<long>();
+      if(!RPC1.call("Decap",(int)C_pos).as<int>())
+        {Serial.println("Error calling Decap");}
       Wait();
       motorOFF;
       mvt_out;
@@ -80,36 +82,23 @@ void Recap(){
 }
 void Align(){
   long decap_start_time = millis();
-  if(!isInit){
-    Serial.println("The machine is not intialized");
-    return; //if not init then do nothing
-  }
-  else{
-    if(C_start){
-      Serial.println("The machine cannot decap with a prior decaping");
-    }
-    else{
       Serial.println("The machine will now start the alignment routine. Keep clear");
       long C_pos = finalPos();
-  
+      int temp = 0;
       Serial.print("Camera capture returned the value : ");
       Serial.println(C_pos);
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
-      *Pworking = RPC1.call("Align",C_pos).as<long>();
+      temp = RPC1.call("Align",(int)C_pos).as<int>();
       Wait();
       motorOFF;
       mvt_out;
-      *CstartPoint = true;
       digitalWrite(pin_crydom,LOW);
       Serial.println("Alignement done");
       Serial.println("Align routine took" + String(millis()-decap_start_time) + " ms to complete");
       digitalWrite(LEDG,LON);
       digitalWrite(LEDB,LON); //LEDB signals that a cap is being held
-  
-    }
-  }
 } 
 
           

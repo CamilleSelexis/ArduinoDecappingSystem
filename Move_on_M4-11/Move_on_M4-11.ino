@@ -59,8 +59,8 @@ volatile int8_t status = -1;
 volatile int8_t* Pstatus = &status;
 
 //Position obtained with the picture from the camera
-long C_pos = 0;
-long *PC_pos = &C_pos;
+int C_pos = 0;
+int *PC_pos = &C_pos;
 
 //Z position where the unscrewing finishes and the screwing must start
 long Z_screw;
@@ -127,7 +127,7 @@ void setup() {
 }
 
 void loop() {
-
+int temp = 0;
 switch(status){
   case -1: //Initial state, before init
     RPC1.println("0");
@@ -162,9 +162,12 @@ switch(status){
     break;
 
   case 4:
+    //RPC1.println("4");
     noInterrupts();
+    //temp = *PC_pos;
+    //RPC1.println(temp);
     pin_reinit();
-    Align(C_pos);
+    Align();
     interrupts();
     status = 0;
     break;
@@ -218,7 +221,7 @@ switch(status){
     
   case 11:
     pin_reinit();
-    Decap(C_pos);
+    Decap();
     status = 0;
     break;
 

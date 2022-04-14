@@ -13,10 +13,13 @@ bool Getdowngo() {
   return true;
 }
 
-bool Aligngo(long Cpos) {
+int Aligngo(int Cpos) {
+  //int temp = Cpos;
+  //RPC1.println(Cpos);
+  //delay(100);
   *PC_pos = Cpos;
   *Pstatus = 4;
-  return true;
+  return 1; //Cannot return a value longer than a bit?
 }
 
 bool Unscrewgo() {
@@ -52,7 +55,8 @@ bool goToStandby() {
   *Pstatus = 10;
   return true;
 }
-bool goDecap(long Cpos) {
+int goDecap(int Cpos) {
+  *PC_pos = Cpos;
   *Pstatus = 11;
   return true;
 }

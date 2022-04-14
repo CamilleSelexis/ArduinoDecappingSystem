@@ -12,7 +12,7 @@ void Ref()  {
     ZSPoint->move(5000*micro_ratio);
     while(ZSPoint->isRunning()){stepperZ.run();}
   }
-  MSPoint->move(4000*micro_ratio);        //Let go of a potential lid
+  MSPoint->move(5000*micro_ratio);        //Let go of a potential lid
   CSPoint->move(-2500*micro_ratio);
   while(MSPoint->isRunning()||CSPoint->isRunning()){runMC;}
   deBuff();
@@ -155,9 +155,9 @@ void ToStandby(){
   runZMC_toTargets(Zzero_offset,Mzero_offset,Czero_offset);
 }
 
-void Decap(long C_pos){
+void Decap(){
   Get_flask();
-  Align(C_pos);
+  Align();
   Getdown();
   *PZ_screw = Unscrew();
 }
@@ -173,12 +173,11 @@ void Get_flask(){
 //Tightening the claws according to the info from video
 //does not tighten at all lol
 //Align the claws with the cap
-void Align(long C_pos) {
-  
-  deBuff();
+void Align() {
+  //deBuff();
   RPC1.println("Align the claws with the cap");
-  RPC1.println("C pos received " + String(C_pos));
-  CSPoint->moveTo(C_pos);
+  RPC1.print("C pos received ");RPC1.println(*PC_pos);
+  CSPoint->moveTo(*PC_pos);
   while(CSPoint->isRunning()){stepperC.run();}
 }
 

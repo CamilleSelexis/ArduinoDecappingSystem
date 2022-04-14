@@ -51,9 +51,7 @@ uint8_t fb[320*240];        //Buffer for the image capture
 uint8_t *Pfb = fb; 
 const int imgH = 240;
 const int imgW = 320;
-//const uint8_t cropx[2] = {120,140};    //Si ze of the cropped image
-//const uint8_t cropy[2] = {110,180};
-const int cropx[2] = {120,140};    //Si ze of the cropped image
+const int cropx[2] = {120,140};    //Size of the cropped image
 const int cropy[2] = {100,200};
 const int ly = cropy[1]-cropy[0]; //Length of the cropped dimmensions
 const int lx = cropx[1]-cropx[0];
@@ -64,7 +62,7 @@ const uint8_t thres = 8;         //Threshold of image detection 2->10
 const uint8_t n = 2;             //Size of the moving average avg done on 2n+1
 
 //Calibration should be determined by the standby position
-const long calibration = 500;    //Rotation offset
+const long calibration = 400;    //Rotation offset
 
  //Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
@@ -171,7 +169,8 @@ void loop() {
         }
         else if(currentLine.endsWith("capture")){
           Serial.println("Capture Routine");
-          finalPos();        
+          finalPos();
+                  
           }
         else if(currentLine.endsWith("Align")){
           Serial.println("Alignment Routine");
