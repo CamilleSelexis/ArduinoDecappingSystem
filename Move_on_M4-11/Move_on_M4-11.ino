@@ -50,7 +50,7 @@ long stp1tour;       //Number of step in one C rotation.
 
 const uint pasLBW = 8;     //Pas de vis du Labware
 
-const long Mzero_offset = 63000*micro_ratio; //Standby position M
+const long Mzero_offset = 252000 ; //63000*micro_ratio; //Standby position M
 const long M_open = 63000*micro_ratio; //Open position for the claws
 const uint Mgear = 100;       //M motor gearbox
 const long M_ser = 53000*micro_ratio;         //Active position M

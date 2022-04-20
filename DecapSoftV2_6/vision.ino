@@ -25,12 +25,13 @@ long finalPos() {
 
   float pixtomm = 0.16286; //Should be right
   float pi = 3.14159265358979323846;  //is definitely right
-
-  temp1 = (temp1-120) * pixtomm;
+  //24 is the size of the cap
+  temp1 = (temp1-imgH/2) * pixtomm;
   temp1 = -ceil(stp1tour*(atan2(temp1,24)/(2*pi)))+calibration;
-  Serial.print("Motor should move ");Serial.print(temp1);Serial.println(" steps to align its claws");
-  temp2 = (temp2-120) * pixtomm;
+  temp2 = (temp2-imgH/2) * pixtomm;
   temp2 = -ceil(stp1tour*(atan2(temp2,24)/(2*pi)))+calibration;
+  Serial.print("Motor should move ");Serial.print(ceil((temp1+temp2)/2));
+  Serial.println(" steps to align its claws");
   return ceil((temp1+temp2)*0.5);
 }
 
@@ -39,13 +40,11 @@ long detectEdges() {
   float cropped2D[lx][ly];
   float filter2D[3][3] = {{-4,0,4},{-4,0,4},{-4,0,4}};
   float result2D[lx][ly];
-  //float gaussian2D[3][3] = {{1/16,2/16,1/16},{2/16,4/16,2/16},{1/16,2/16,1/16}};
   float gaussian2D[3][3] = {{1,2,1},{2,4,2},{1,2,1}};
   float lineAvg[ly];
   float line[ly];
-  int edge_pos[10];
+  int edge_pos[100]; //Max size if every single pixel is a max (impossible)
   if (cam.grab(fb) == 0){
-//    Serial.write(fb,320*240);
     Serial.println("Capture done");
   }
   else{Serial.println("Couldn't take a capture");}
@@ -54,10 +53,7 @@ long detectEdges() {
       cropped2D[i][j] = 0;
       cropped2D[i][j] = fb[(j+cropy[0])*imgW+(i+cropx[0])];
       result2D[i][j] = 0;
-      //Serial.print(fb[(j+cropy[0])*imgW+(i+cropx[0])]); Serial.print(" ");
-      //Serial.print(cropped2D[i][j]);Serial.print(" ");
     }
-    //Serial.println("");
   }
   //Compute gaussian avg on the picture with a convolution
   convolution_2D(cropped2D,gaussian2D,result2D);
@@ -65,9 +61,7 @@ long detectEdges() {
     for(int j = 0; j<ly; j++){
         cropped2D[i][j] = result2D[i][j]/16;
         result2D[i][j] = 0;
-      //Serial.print(result2D[i][j]);Serial.print(" ");
     }
-    //Serial.println("");
   }
   //Use sobel filter on the averaged picture to detect the edges
   convolution_2D(cropped2D,filter2D,result2D);
@@ -84,9 +78,7 @@ long detectEdges() {
       line[i] = line[i] + result2D[j][i]; //Compute sum on each line
     }
     line[i] = line[i]/lx; // Avg each line
-    //Serial.print(line[i]); Serial.print(" ");
   }
-  //Serial.println(" ");
   movingAverage(line,lineAvg,2,ly);
   //Intensity Thresholding
   int int_thresh = 35; //Could add a smart way to compute the threshold by doing histograms
@@ -96,14 +88,8 @@ long detectEdges() {
       else
           lineAvg[i] = 0;
       line[i] = lineAvg[i];
-      //Serial.print(lineAvg[i]); Serial.print(" ");
   }
-  //Serial.println("");
   movingAverage(line,lineAvg,1,ly);
-//  for(int i=0;i<ly;i++){
-//    Serial.print(lineAvg[i]); Serial.print(" ");
-//  }
-//  Serial.println("");
   int k = 0;
   int found = 0;
   for(int i = 10; i<ly-10;i++){ // don't consider the 10 pixel on the borders

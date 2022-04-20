@@ -12,7 +12,7 @@ void Ref()  {
     ZSPoint->move(5000*micro_ratio);
     while(ZSPoint->isRunning()){stepperZ.run();}
   }
-  MSPoint->move(5000*micro_ratio);        //Let go of a potential lid
+  MSPoint->move(2500*micro_ratio);        //Let go of a potential lid
   CSPoint->move(-2500*micro_ratio);
   while(MSPoint->isRunning()||CSPoint->isRunning()){runMC;}
   deBuff();
@@ -76,33 +76,29 @@ void refMZ() {
   deBuff();
   ZSPoint->move(-1000000*micro_ratio);    //Go up and search limit
   MSPoint->move(-1000000*micro_ratio);  //Go to first contact closure
-  bool phase_1 = true;
-  while(phase_1){
+  while(ZSPoint->isRunning()||MSPoint->isRunning()){
     if(!digitalRead(pin_BZ)){ZSPoint->move(3000*micro_ratio);} //Change dir of Z
-    if(digitalRead(pin_contact)){MSPoint->move(4000*micro_ratio);} // Change dir of M
+    if(digitalRead(pin_contact)){MSPoint->move(3000*micro_ratio);} // Change dir of M
     runMZ;
-    if(!ZSPoint->isRunning()&&!MSPoint->isRunning()){
-      phase_1 = false;
-    }
   }
-  deBuff();
   slow_initZ();
   slow_initM();
   ZSPoint->move(-5000*micro_ratio);       //Go back a second time
   MSPoint->move(-5000*micro_ratio);    //Go back a second time
-  bool phase_2 = true;
-  while(phase_2){
-    if(!digitalRead(pin_BZ)){ZSPoint->setCurrentPosition(0);ZSPoint->move(0);}
-    if(digitalRead(pin_contact)){MSPoint->setCurrentPosition(0);MSPoint->move(0);}
-    runMZ;
-    if(!ZSPoint->isRunning()&&!MSPoint->isRunning()){
-      phase_2 = false;
+  while(ZSPoint->isRunning()||MSPoint->isRunning()){
+    if(!digitalRead(pin_BZ)){
+      ZSPoint->setCurrentPosition(0);
+//      ZSPoint->moveTo(2500*micro_ratio);
     }
+    if(digitalRead(pin_contact)){
+      MSPoint->setCurrentPosition(0);
+//      MSPoint->moveTo(2500*micro_ratio);
+    }
+    runMZ;
   }
-  deBuff();
-  ZSPoint->move(1500*micro_ratio);       //Go away
-  MSPoint->move(2500*micro_ratio);    //Go away
-  while(ZSPoint->isRunning()&&MSPoint->isRunning()){
+  ZSPoint->moveTo(2500*micro_ratio);
+  MSPoint->moveTo(2500*micro_ratio);
+  while(ZSPoint->isRunning()||MSPoint->isRunning()){
     runMZ;
   }
   RPC1.println("Parrallel init done for Z and M");
