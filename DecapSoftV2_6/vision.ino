@@ -99,6 +99,7 @@ long detectEdges() {
       Serial.print("Found max at : "); Serial.println(i);
     }
   }
+  //It selects the edge closest to the front of the camera
   Serial.print("Found : ");Serial.print(found);Serial.println(" edges");
   long edge_position = 0;
   for(int i= 0; i<found; i++){

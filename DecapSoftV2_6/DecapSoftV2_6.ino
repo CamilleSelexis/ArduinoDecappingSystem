@@ -49,8 +49,8 @@ int baud = 115200;          //Baud rate of the serial comunication
 CameraClass cam;
 uint8_t fb[320*240];        //Buffer for the image capture
 uint8_t *Pfb = fb; 
-const int imgH = 240;
-const int imgW = 320;
+const int imgH = 240; //X dimension
+const int imgW = 320; //Y dimension
 const int cropx[2] = {120,140};    //Size of the cropped image
 const int cropy[2] = {100,200};
 const int ly = cropy[1]-cropy[0]; //Length of the cropped dimmensions
