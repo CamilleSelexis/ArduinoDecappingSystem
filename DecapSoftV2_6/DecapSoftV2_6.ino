@@ -62,7 +62,7 @@ const uint8_t thres = 8;         //Threshold of image detection 2->10
 const uint8_t n = 2;             //Size of the moving average avg done on 2n+1
 
 //Calibration should be determined by the standby position
-const long calibration = 400;    //Rotation offset
+const long calibration = 2400;    //Rotation offset - 9267 is the distance between the bumps
 
  //Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress

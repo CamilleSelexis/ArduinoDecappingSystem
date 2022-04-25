@@ -22,17 +22,19 @@ long finalPos() {
   }
 
   //cam.standby(true);
-
-  float pixtomm = 0.16286; //Should be right
-  float pi = 3.14159265358979323846;  //is definitely right
+  double dist1 = 0;
+  double dist2 = 0;
+  double pixtomm = 0.16606; //Should be right
+  double pi = 3.14159265358979323846;  //is definitely right
   //24 is the size of the cap
-  temp1 = (temp1-imgH/2) * pixtomm;
-  temp1 = -ceil(stp1tour*(atan2(temp1,24)/(2*pi)))+calibration;
-  temp2 = (temp2-imgH/2) * pixtomm;
-  temp2 = -ceil(stp1tour*(atan2(temp2,24)/(2*pi)))+calibration;
-  Serial.print("Motor should move ");Serial.print(ceil((temp1+temp2)/2));
+  dist1 = (temp1-imgH/2) * pixtomm; //Compute the dist with the center
+  // The positive direction for C is clockwise
+  dist1 = -ceil(stp1tour*(atan2(dist1,24)/(2*pi)))+calibration;
+  dist2 = (temp2-imgH/2) * pixtomm;
+  dist2 = -ceil(stp1tour*(atan2(dist2,24)/(2*pi)))+calibration;
+  Serial.print("Motor should move ");Serial.print(ceil((dist1+dist2)/2));
   Serial.println(" steps to align its claws");
-  return ceil((temp1+temp2)*0.5);
+  return (long)ceil((dist1+dist2)*0.5);
 }
 
 long detectEdges() {
@@ -43,7 +45,7 @@ long detectEdges() {
   float gaussian2D[3][3] = {{1,2,1},{2,4,2},{1,2,1}};
   float lineAvg[ly];
   float line[ly];
-  int edge_pos[100]; //Max size if every single pixel is a max (impossible)
+  float edge_pos[100]; //Max size if every single pixel is a max (impossible)
   if (cam.grab(fb) == 0){
     Serial.println("Capture done");
   }
@@ -96,14 +98,49 @@ long detectEdges() {
     if(lineAvg[i]>int_thresh && lineAvg[i]>=lineAvg[i-1] && lineAvg[i] >= lineAvg[i+1]){
       edge_pos[k++] = i;
       found++;
-      Serial.print("Found max at : "); Serial.println(i);
+      //Serial.print("Found max at : "); Serial.println(i);
     }
   }
   //It selects the edge closest to the front of the camera
   Serial.print("Found : ");Serial.print(found);Serial.println(" edges");
+  int edge_number[found];
+  int edge_length[found];
+  int nb_edge = 0;
+  int l = 0;
+  for(int i = 0; i<found; i++){
+    if(i<found-1){
+      edge_number[i] = nb_edge;
+      edge_length[nb_edge] = ++l;
+      if(edge_pos[i+1]-edge_pos[i]>5){
+        nb_edge = nb_edge+1;
+        l = 0;
+      }
+    }
+    else{
+      if(edge_pos[i]-edge_pos[i-1]>5){
+        nb_edge = nb_edge+1;
+        l = 0;
+      }
+      edge_number[i] = nb_edge;
+      edge_length[nb_edge] = ++l;
+    }
+    Serial.print(edge_pos[i]);Serial.print(" ");Serial.print(edge_number[i]);Serial.println(" ");
+  }
+  Serial.print("There is ");Serial.print(nb_edge+1);Serial.println(" different edges detected");
+  for(int i = 0;i<nb_edge+1;i++){
+    Serial.print("The edge ");Serial.print(i);Serial.print(" is ");Serial.print(edge_length[i]);Serial.println(" pixel long");
+  }
+  float edge_midpos[nb_edge+1];
+  for(int i = 0; i<found; i++){
+     edge_midpos[edge_number[i]] += edge_pos[i];
+  }
+  for(int i = 0;i<nb_edge+1;i++){
+    edge_midpos[i] = ceil(edge_midpos[i]/edge_length[i]);
+    Serial.print("The middle position of the edge ");Serial.print(i);Serial.print(" is at pos ");Serial.println(edge_midpos[i]);
+  }
   long edge_position = 0;
-  for(int i= 0; i<found; i++){
-    if(abs(edge_pos[i]-ly/2) < abs(edge_position-ly/2)) edge_position = edge_pos[i];
+  for(int i= 0; i<nb_edge; i++){
+    if(abs(edge_midpos[i]-ly/2) < abs(edge_position-ly/2)) edge_position = (long)edge_midpos[i];
   }
   Serial.print("Edge at position ");Serial.print(edge_position+ cropy[0]);Serial.println(" in the full picture");
   return edge_position + cropy[0];
