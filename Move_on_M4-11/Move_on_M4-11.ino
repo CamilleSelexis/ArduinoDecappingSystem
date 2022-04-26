@@ -36,9 +36,9 @@ const int micro_ratio = 4; //Microsteps ratio
 const int screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 10;        //Min pulse width in us
 
-const long Zzero_offset = 200000*micro_ratio; //Standby position Z [steps]
-const long Z_inter = Zzero_offset+90000*micro_ratio; //Intermediate position
+const long Zzero_offset = 140000*micro_ratio; //Standby position Z [steps]
 const long Z_pos = 227500*micro_ratio;   //Position of the claws at the cap level
+const long Z_inter = ceil(0.9*Z_pos);//Zzero_offset+90000*micro_ratio; //Intermediate position
 const long Z_prec = 500*micro_ratio;   //Precontrainte on the spring
 const long Zgear = 19;        //Z motor gearbox
 
@@ -123,7 +123,11 @@ void setup() {
   RPC1.bind("GoToStandby",goToStandby);
   RPC1.bind("Decap",goDecap);
   RPC1.bind("Recap",goRecap);
-  
+
+  //TO BE REMOVED
+  stepperC.setCurrentPosition(Czero_offset);
+  stepperZ.setCurrentPosition(Zzero_offset);
+  stepperM.setCurrentPosition(Mzero_offset);
 }
 
 void loop() {

@@ -1,11 +1,11 @@
 //Functions serving the detection algorythm
-
+// Could add a term that is proportional to its distance from the middle
 //Calls GetPos() and check its reliability over 2 iterations
 long finalPos() {
   //cam.standby(false);
 //    while(Serial.read() != '1'){};
 //     Serial.write(fb, 320*240);
-  uint8_t tol = 20;
+  uint8_t tol = 5;
   uint8_t i = 0;
   delay(50);
 
@@ -29,9 +29,9 @@ long finalPos() {
   //24 is the size of the cap
   dist1 = (temp1-imgH/2) * pixtomm; //Compute the dist with the center
   // The positive direction for C is clockwise
-  dist1 = -ceil(stp1tour*(atan2(dist1,24)/(2*pi)))+calibration;
+  dist1 = -ceil(stp1tour*(atan2(dist1,24)/(2*pi)))+calibration - dist1*dist1*cal_prop;
   dist2 = (temp2-imgH/2) * pixtomm;
-  dist2 = -ceil(stp1tour*(atan2(dist2,24)/(2*pi)))+calibration;
+  dist2 = -ceil(stp1tour*(atan2(dist2,24)/(2*pi)))+calibration - dist2*dist2*cal_prop;
   Serial.print("Motor should move ");Serial.print(ceil((dist1+dist2)/2));
   Serial.println(" steps to align its claws");
   return (long)ceil((dist1+dist2)*0.5);
@@ -117,10 +117,10 @@ long detectEdges() {
       }
     }
     else{
-      if(edge_pos[i]-edge_pos[i-1]>5){
-        nb_edge = nb_edge+1;
-        l = 0;
-      }
+//      if(edge_pos[i]-edge_pos[i-1]>5){
+//        nb_edge = nb_edge+1;
+//        l = 0;
+//      }
       edge_number[i] = nb_edge;
       edge_length[nb_edge] = ++l;
     }
@@ -139,7 +139,7 @@ long detectEdges() {
     Serial.print("The middle position of the edge ");Serial.print(i);Serial.print(" is at pos ");Serial.println(edge_midpos[i]);
   }
   long edge_position = 0;
-  for(int i= 0; i<nb_edge; i++){
+  for(int i= 0; i<nb_edge+1; i++){
     if(abs(edge_midpos[i]-ly/2) < abs(edge_position-ly/2)) edge_position = (long)edge_midpos[i];
   }
   Serial.print("Edge at position ");Serial.print(edge_position+ cropy[0]);Serial.println(" in the full picture");
