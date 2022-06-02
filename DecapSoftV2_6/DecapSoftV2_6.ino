@@ -64,6 +64,16 @@ const uint8_t n = 2;             //Size of the moving average avg done on 2n+1
 //Calibration should be determined by the standby position
 const long calibration = 1000*Cmicrosteps;    //Rotation offset - 9267 is the distance between the bumps
 const int cal_prop = 28; //Factor for the calibration based on the dist from the center
+long Zstandby = 100000;
+long Mstandby = 63000;
+long Cstandby = 0;
+long Zspeed = 5000;
+long Mspeed = 6000;
+long Cspeed = 6000;
+long Zacc = 3500;
+long Macc = 3500;
+long Cacc = 3500;
+long ScrewSpeed = 4;
  //Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
@@ -145,17 +155,19 @@ void loop() {
           currentLine += c;
         }
         
-        
         if(currentLine.endsWith("Status")){
           Status();
         } 
-        else if(currentLine.endsWith("Init")){
+        else if(currentLine.endsWith("Initialize")){
+          client.print("Initialize");
           refAllHome();
           } 
         else if(currentLine.endsWith("Decap")){
+          client.print("Decap routine");
           Decap();
         }
         else if(currentLine.endsWith("Recap")){
+          client.print("Recap routine");
           Recap();
         }  
         else if(currentLine.endsWith("Sudo Uncap")){
@@ -174,8 +186,21 @@ void loop() {
           }
         else if(currentLine.endsWith("Align")){
           Serial.println("Alignment Routine");
+          client.print("Alignement Routine");
           Align();        
-          }      
+          }
+          else if(currentLine.endsWith("ReadParameters"){
+            Serial.println("Sending params");
+            client.print("Sending params");      
+          }
+          else if(currentLine.endsWith("WriteParameters")){
+            client.print("Writing new parameters");
+            write_parameters(client);
+            client.print("Done writing parameters");
+            client.flush();
+            client.stop();
+            
+          }
           } 
       }     
 client.stop(); 
