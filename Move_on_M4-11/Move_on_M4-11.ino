@@ -68,6 +68,18 @@ long* PZ_screw = &Z_screw;
 
 //-----Stepper Definition------//
 
+long Zstandby = 100000;
+long Mstandby = 63000;
+long Cstandby = 0;
+long Zspeed = 5000;
+long Mspeed = 6000;
+long Cspeed = 6000;
+long Zacc = 3500;
+long Macc = 3500;
+long Cacc = 3500;
+long ScrewSpeed = 4;
+long parameters[10] = {Zstandby, Mstandby, Cstandby,Zspeed,Mspeed,Cspeed,Zacc,Macc,Cacc,ScrewSpeed};
+
 //Stepper Z
 AccelStepper stepperZ(
  AccelStepper::DRIVER, //Motor type
@@ -123,6 +135,7 @@ void setup() {
   RPC1.bind("GoToStandby",goToStandby);
   RPC1.bind("Decap",goDecap);
   RPC1.bind("Recap",goRecap);
+  RPC1.bind("setParams",setParams);
 
   //TO BE REMOVED
   stepperC.setCurrentPosition(Czero_offset);
@@ -232,6 +245,12 @@ switch(status){
   case 12:
     pin_reinit();
     Recap();
+    status = 0;
+    break;
+  case 13:
+    /*for(int i = 0; i<10;i++){
+      RPC1.println("Setting variable :" + String(parameters[i]));
+    }*/
     status = 0;
     break;
 }

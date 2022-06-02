@@ -65,3 +65,9 @@ bool goRecap() {
   *Pstatus = 12;
   return true;
 }
+
+long setParams(int index, long param){
+  parameters[index] = param;
+  *Pstatus = 13;
+  return param;
+}

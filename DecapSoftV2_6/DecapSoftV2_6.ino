@@ -74,11 +74,12 @@ long Zacc = 3500;
 long Macc = 3500;
 long Cacc = 3500;
 long ScrewSpeed = 4;
+long parameters[10] = {Zstandby, Mstandby, Cstandby,Zspeed,Mspeed,Cspeed,Zacc,Macc,Cacc,ScrewSpeed};
  //Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
-IPAddress ip(10,0,16,10);   //Adresse IP
-
+//IPAddress ip(10,0,16,10);   //Adresse IP
+IPAddress ip(192,168,0,2);
 EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52 is the number of the lab
 
 
@@ -86,13 +87,12 @@ EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52
 void setup(){
   bootM4();
   RPC1.begin(); 
-
+  RPC1.bind("setParams", setParams);
   Serial.begin(baud); //Begin serial communication aka discussion through usb
-  while(!Serial);
   Serial.println("Serial Coms started. RPC1 starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
   digitalWrite(LEDB,LON);
-
+  
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
   if(cam.begin(CAMERA_R320x240, 30)== 0){
@@ -136,7 +136,8 @@ void setup(){
 void loop() {
 
 //No need to change that, just remembers it seek the string at the end of a line. So "blabla" will also trigger "anyblabla"
-  
+  digitalWrite(LEDB,HIGH);
+  delay(100);
   
   // listen for incoming clients
   EthernetClient client = server.available();
@@ -189,20 +190,42 @@ void loop() {
           client.print("Alignement Routine");
           Align();        
           }
-          else if(currentLine.endsWith("ReadParameters"){
+          else if(currentLine.endsWith("ReadParameters")){
             Serial.println("Sending params");
-            client.print("Sending params");      
+            //client.print("Sending params");
+            read_parameters(client);   
           }
           else if(currentLine.endsWith("WriteParameters")){
-            client.print("Writing new parameters");
-            write_parameters(client);
+            char data[4] = {0,0,0,0};
+            long params[10] = {0,0,0,0,0,0,0,0,0,0};
+            int counter = 0;
+            delay(100);
+            Serial.print(client.available());Serial.println(" : bytes available for reading");
+            if(client.available() != 40)break;
+            while(client.available()>3){
+              for(int i = 0; i<4; i++){
+                data[i] = client.read();
+              }
+              params[counter++] = chartolong(data);
+            }
+            Serial.println("Done writing parameters");
             client.print("Done writing parameters");
             client.flush();
             client.stop();
-            
+            for(int i = 0;i<10;i++){
+              long result = RPC1.call("setParams",i,params[i]).as<long>(); //From M7 setting a variable in M4
+              delay(100);
+              Serial.println("Called the RPC function");
+            }
+            //long result = RPC1.call("setParams",0,params[0]).as<long>(); //From M7 setting a variable in M4
+            while(RPC1.available()){
+              Serial.write(RPC1.read());
+            }
           }
           } 
       }     
 client.stop(); 
-  } 
+  }
+  digitalWrite(LEDB,LOW);
+  delay(100);
 }
