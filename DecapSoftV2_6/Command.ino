@@ -191,6 +191,21 @@ void SudoRecap(){
     motorOFF;
     mvt_out;
   }
+  
+void Move(char target, int val){
+  if(target == 'Z'){
+    long value = RPC1.call("MoveZ",val).as<long>();
+  }
+  if(target == 'M'){
+    long value = RPC1.call("MoveX",val).as<long>();
+  }
+    if(target == 'C'){
+    long value = RPC1.call("MoveX",val).as<long>();
+  }
+}
+void Speed(char target, int val){
+  
+}
 
 void Wait() {
   delay(500);

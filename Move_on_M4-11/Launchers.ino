@@ -66,8 +66,32 @@ bool goRecap() {
   return true;
 }
 
-long setParams(int index, long param){
+byte goSetParams(byte index,byte bytes0,byte bytes1,byte bytes2,byte bytes3){
+  byte data[4] = {bytes0,bytes1,bytes2,bytes3};
+  long param = bytetolong(data);
   parameters[index] = param;
+  //*Pstatus = 13;
+  return bytes0;
+}
+bool readM4Params(){
   *Pstatus = 13;
-  return param;
+  return true;
+}
+
+long goMoveZ(long val){
+  *Pstatus = 14;
+  value = val;
+  return val;
+}
+
+long goMoveM(long val){
+  *Pstatus = 14;
+  value = val;
+  return val;
+}
+
+long goMoveC(long val){
+  *Pstatus = 14;
+  value = val;
+  return val;
 }

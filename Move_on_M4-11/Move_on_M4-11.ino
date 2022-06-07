@@ -68,18 +68,19 @@ long* PZ_screw = &Z_screw;
 
 //-----Stepper Definition------//
 
-long Zstandby = 100000;
-long Mstandby = 63000;
-long Cstandby = 0;
-long Zspeed = 5000;
-long Mspeed = 6000;
-long Cspeed = 6000;
-long Zacc = 3500;
-long Macc = 3500;
-long Cacc = 3500;
-long ScrewSpeed = 4;
-long parameters[10] = {Zstandby, Mstandby, Cstandby,Zspeed,Mspeed,Cspeed,Zacc,Macc,Cacc,ScrewSpeed};
+int32_t Zstandby = 100000;
+int32_t Mstandby = 63000;
+int32_t Cstandby = 0;
+int32_t Zspeed = 5000;
+int32_t Mspeed = 6000;
+int32_t Cspeed = 6000;
+int32_t Zacc = 3500;
+int32_t Macc = 3500;
+int32_t Cacc = 3500;
+int32_t ScrewSpeed = 4;
+int32_t parameters[10] = {Zstandby, Mstandby, Cstandby,Zspeed,Mspeed,Cspeed,Zacc,Macc,Cacc,ScrewSpeed};
 
+int32_t value = 0;
 //Stepper Z
 AccelStepper stepperZ(
  AccelStepper::DRIVER, //Motor type
@@ -135,7 +136,11 @@ void setup() {
   RPC1.bind("GoToStandby",goToStandby);
   RPC1.bind("Decap",goDecap);
   RPC1.bind("Recap",goRecap);
-  RPC1.bind("setParams",setParams);
+  RPC1.bind("setParams",goSetParams);
+  RPC1.bind("MoveZ",goMoveZ);
+  RPC1.bind("MoveM",goMoveM);
+  RPC1.bind("MoveC",goMoveC);
+  RPC1.bind("readM4Params",readM4Params);
 
   //TO BE REMOVED
   stepperC.setCurrentPosition(Czero_offset);
@@ -145,14 +150,15 @@ void setup() {
 
 void loop() {
 int temp = 0;
+bool res = true;
 switch(status){
   case -1: //Initial state, before init
-    RPC1.println("0");
+    //RPC1.println("0");
     delay(100);
     break;
 
   case 0: //M4 get in this state after finishing a task
-    RPC1.println("1");
+    //RPC1.println("1");
     delay(100);
     break;
 
@@ -248,9 +254,28 @@ switch(status){
     status = 0;
     break;
   case 13:
-    /*for(int i = 0; i<10;i++){
-      RPC1.println("Setting variable :" + String(parameters[i]));
-    }*/
+    RPC1.flush();
+    RPC1.print("Parameters written :");
+    for(int i = 0;i<10;i++){
+      RPC1.print(parameters[i]);RPC1.print(" ");
+    }
+    RPC1.println(" ");
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
+    status = 0;
+    break;
+
+  case 14:
+    MoveZ(value);
+    status = 0;
+    break;
+
+  case 15:
+    MoveM(value);
+    status = 0;
+    break;
+  case 16:
+    MoveC(value);
     status = 0;
     break;
 }

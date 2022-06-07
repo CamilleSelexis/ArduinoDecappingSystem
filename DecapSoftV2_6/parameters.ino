@@ -19,7 +19,6 @@ void write_parameters(EthernetClient client){
 void read_parameters(EthernetClient client){
   byte myByte[4];
   byte byteArray[40];
-  //Zstandby
   for(int i = 0; i<10;i++){
       for(int j = 0;j<4;j++){
         byteArray[3-j+i*4] = (parameters[i]>>j*8) & 0xFF; //Fill 3, 2, 1, 0, 7, 6, 5, 4, etc...
@@ -36,6 +35,12 @@ long chartolong(char data[4]){
   Serial.println(a);
   return a;
 }
+int chartoint(char data[2]){
+  int a = 0;
+  a  = data[0]|(data[1]<<8);
+  Serial.println(a);
+  return a;
+}
 byte* longtochar(long mylong){
   static byte myByte[4];
   myByte[3] = mylong & 0xFF;
@@ -45,7 +50,7 @@ byte* longtochar(long mylong){
   return myByte;
 }
 
-long setParams(int index, long param){
-  parameters[index] = param;
-  return param;
+bool M4TaskCompleted(){
+  *Pworking = false;
+  return true;
 }

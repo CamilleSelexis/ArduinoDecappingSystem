@@ -86,8 +86,9 @@ EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52
 //-------------------------------------------//
 void setup(){
   bootM4();
-  RPC1.begin(); 
-  RPC1.bind("setParams", setParams);
+  RPC1.begin();
+  RPC1.bind("M4TaskCompleted",M4TaskCompleted);
+  //RPC1.bind("setParams", setParams);
   Serial.begin(baud); //Begin serial communication aka discussion through usb
   Serial.println("Serial Coms started. RPC1 starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
@@ -196,8 +197,10 @@ void loop() {
             read_parameters(client);   
           }
           else if(currentLine.endsWith("WriteParameters")){
+            //write_parameters(client);
+            *Pworking = true;
             char data[4] = {0,0,0,0};
-            long params[10] = {0,0,0,0,0,0,0,0,0,0};
+            int32_t params[10] = {0,0,0,0,0,0,0,0,0,0};
             int counter = 0;
             delay(100);
             Serial.print(client.available());Serial.println(" : bytes available for reading");
@@ -206,20 +209,114 @@ void loop() {
               for(int i = 0; i<4; i++){
                 data[i] = client.read();
               }
-              params[counter++] = chartolong(data);
+              params[counter++] = (int32_t)chartolong(data);
             }
+            for(int j=0;j<10;j++){
+              Serial.print(params[j]);Serial.print(" ");
+            }
+            Serial.println("");
             Serial.println("Done writing parameters");
             client.print("Done writing parameters");
             client.flush();
             client.stop();
+
             for(int i = 0;i<10;i++){
-              long result = RPC1.call("setParams",i,params[i]).as<long>(); //From M7 setting a variable in M4
+              byte bytes[4] = {(params[i] >> 0) & 0xFF, (params[i] >> 8) & 0xFF, (params[i] >> 16) & 0xFF, (params[i] >> 24) & 0xFF};
+              byte result = RPC1.call("setParams",i,bytes[0],bytes[1],bytes[2],bytes[3]).as<byte>(); //From M7 setting a variable in M4
               delay(100);
-              Serial.println("Called the RPC function");
+              Serial.println("Called the RPC function " + String(params[i]));
             }
-            //long result = RPC1.call("setParams",0,params[0]).as<long>(); //From M7 setting a variable in M4
-            while(RPC1.available()){
-              Serial.write(RPC1.read());
+            bool result = RPC1.call("readM4Params").as<bool>();
+            //delay(1000);
+            //RPC1.setTimeout(2000);
+            while(*Pworking){
+              if(RPC1.available()){
+                Serial.write(RPC1.read());
+              }
+            }
+
+          }
+          else if(currentLine.endsWith("Manual control")){
+            client.print("Going into manual control, use the serial console to control me");
+            client.stop();
+            //manualControl();
+            while(1){
+              digitalWrite(LEDR,LOW);
+              delay(100);
+              client = server.available();
+              if (client) {
+                  // an http request ends with a blank line
+                  while (client.connected()) {
+                    if(client.available()){
+                      char data = client.read();
+                      if(data == 'Z'){
+                        data = client.read();
+                        if(data == 'M'){
+                          char value[4] = {0,0,0,0};//The value is a long
+                          value[0] = client.read();value[1] = client.read();value[2] = client.read();value[3] = client.read();
+                          long val = chartolong(value);
+                          Serial.print("Received value for movement in X of : ");Serial.println(val);
+                          Move('X',val);
+                          
+                        }
+                        else if(data == 'S'){
+                          char value[4] = {0,0,0,0};//The value is a long
+                          value[0] = client.read();value[1] = client.read();value[2] = client.read();value[3] = client.read();
+                          long val = chartolong(value);
+                          Serial.print("Received value for speed in X of : ");Serial.println(val);
+                          Speed('X',val);
+                        }
+                      }
+                      if(data == 'C'){
+                        data = client.read();
+                        if(data == 'M'){
+                          char value[4] = {0,0,0,0};//The value is a long
+                          value[0] = client.read();value[1] = client.read();value[2] = client.read();value[3] = client.read();
+                          long val = chartolong(value);
+                          Serial.print("Received value for movement in X of : ");Serial.println(val);
+                          Move('C',val);
+                          
+                        }
+                        else if(data == 'S'){
+                          char value[4] = {0,0,0,0};//The value is a long
+                          value[0] = client.read();value[1] = client.read();value[2] = client.read();value[3] = client.read();
+                          long val = chartolong(value);
+                          Serial.print("Received value for speed in X of : ");Serial.println(val);
+                          Speed('C',val);
+                        }
+                      }
+                      if(data == 'M'){
+                        data = client.read();
+                        if(data == 'M'){
+                          char value[4] = {0,0,0,0};//The value is a long
+                          value[0] = client.read();value[1] = client.read();value[2] = client.read();value[3] = client.read();
+                          long val = chartolong(value);
+                          Serial.print("Received value for movement in X of : ");Serial.println(val);
+                          Move('M',val);
+                          
+                        }
+                        else if(data == 'S'){
+                          char value[4] = {0,0,0,0};//The value is a long
+                          value[0] = client.read();value[1] = client.read();value[2] = client.read();value[3] = client.read();
+                          long val = chartolong(value);
+                          Serial.print("Received value for speed in X of : ");Serial.println(val);
+                          Speed('M',val);
+                        }
+                      }
+                      if(data == 'Q'){
+                        Serial.println("I will exit manual control");
+                        client.print("I will exit manual control");
+                      }
+                      else{
+                        client.print("Message must start by M,C or Z");
+                      }
+                      client.flush();
+                      client.stop();
+                    }
+                  }
+              }
+              digitalWrite(LEDR,HIGH);
+              delay(100);
             }
           }
           } 

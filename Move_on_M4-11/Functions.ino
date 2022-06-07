@@ -313,3 +313,13 @@ void runZMC_toTargets(long target_z,long target_m, long target_c) {
     }
   }
 }
+
+void MoveZ(long value){
+  
+}
+void MoveC(long val){
+  
+}
+void MoveM(long val){
+  
+}
