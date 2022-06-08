@@ -33,24 +33,24 @@ const int LON = LOW; // Voltage level is inverted for the LED
 const int LOFF = HIGH;
 const int motor_step_rot = 200;  //Number of steps in rot of the motors
 const int micro_ratio = 4; //Microsteps ratio
-const int screw_time = 4; //Time to screw/unscrew [s]
+//const int screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 10;        //Min pulse width in us
 
-const long Zzero_offset = 140000*micro_ratio; //Standby position Z [steps]
+//uint32_t Zzero_offset = 140000*micro_ratio; //Standby position Z [steps]
 const long Z_pos = 227500*micro_ratio;   //Position of the claws at the cap level
 const long Z_inter = ceil(0.9*Z_pos);//Zzero_offset+90000*micro_ratio; //Intermediate position
 const long Z_prec = 500*micro_ratio;   //Precontrainte on the spring
 const long Zgear = 19;        //Z motor gearbox
 
 
-const long Czero_offset = 1;    //Standby position C [tours]
+//uint32_t Czero_offset = 1*micro_ratio;    //Standby position C [tours]
 const long Cgear = 139;         //C motor gearbox
 const float Ctrans = 1.25;       //C secondary gear ratio
 long stp1tour;       //Number of step in one C rotation.
 
 const uint pasLBW = 8;     //Pas de vis du Labware
 
-const long Mzero_offset = 252000 ; //63000*micro_ratio; //Standby position M
+//uint32_t Mzero_offset = 63000*micro_ratio ; //63000*micro_ratio; //Standby position M
 const long M_open = 63000*micro_ratio; //Open position for the claws
 const uint Mgear = 100;       //M motor gearbox
 const long M_ser = 53000*micro_ratio;         //Active position M
@@ -68,19 +68,20 @@ long* PZ_screw = &Z_screw;
 
 //-----Stepper Definition------//
 
-int32_t Zstandby = 100000;
-int32_t Mstandby = 63000;
-int32_t Cstandby = 0;
-int32_t Zspeed = 5000;
-int32_t Mspeed = 6000;
-int32_t Cspeed = 6000;
-int32_t Zacc = 3500;
-int32_t Macc = 3500;
-int32_t Cacc = 3500;
-int32_t ScrewSpeed = 4;
-int32_t parameters[10] = {Zstandby, Mstandby, Cstandby,Zspeed,Mspeed,Cspeed,Zacc,Macc,Cacc,ScrewSpeed};
+int32_t Zzero_offset = 140000*micro_ratio;
+int32_t Mzero_offset = 63000*micro_ratio;
+int32_t Czero_offset = 1*micro_ratio;
+int32_t Zspeed = 1500*micro_ratio;
+int32_t Mspeed = 1500*micro_ratio;
+int32_t Cspeed = 1500*micro_ratio;
+int32_t Zacc = 1000*micro_ratio;
+int32_t Macc = 1000*micro_ratio;
+int32_t Cacc = 1000*micro_ratio;
+int32_t ScrewSpeed = 8*micro_ratio;
+int32_t *parameters[10] = {&Zzero_offset, &Mzero_offset, &Czero_offset,&Zspeed,&Mspeed,&Cspeed,&Zacc,&Macc,&Cacc,&ScrewSpeed};
 
 int32_t value = 0;
+int32_t disp_value = 0;
 //Stepper Z
 AccelStepper stepperZ(
  AccelStepper::DRIVER, //Motor type
@@ -165,6 +166,8 @@ switch(status){
   case 1:
     pin_init();
     Ref();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -173,6 +176,8 @@ switch(status){
     pin_reinit();
     Get_flask();
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   
@@ -181,6 +186,8 @@ switch(status){
     pin_reinit();
     Getdown();
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -192,6 +199,8 @@ switch(status){
     pin_reinit();
     Align();
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -200,6 +209,8 @@ switch(status){
     pin_reinit();
     *PZ_screw = Unscrew();
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -208,6 +219,8 @@ switch(status){
     pin_reinit();
     Bringback();
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -216,6 +229,8 @@ switch(status){
     pin_reinit();
     reScrew(Z_screw);
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   
@@ -224,6 +239,8 @@ switch(status){
     pin_reinit();
     untigh_up();
     interrupts();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -233,31 +250,38 @@ switch(status){
     stepper_std();
     MSPoint->moveTo(Mzero_offset);
     while(abs(MSPoint->distanceToGo())>0){stepperM.run();}
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
     
   case 10:
     pin_reinit();
-    ToStandby();
+    ToStandby();delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
     
   case 11:
     pin_reinit();
     Decap();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 12:
     pin_reinit();
     Recap();
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   case 13:
     RPC1.flush();
     RPC1.print("Parameters written :");
     for(int i = 0;i<10;i++){
-      RPC1.print(parameters[i]);RPC1.print(" ");
+      RPC1.print(*parameters[i]/micro_ratio);RPC1.print(" ");
     }
     RPC1.println(" ");
     delay(1000);
@@ -266,16 +290,22 @@ switch(status){
     break;
 
   case 14:
-    MoveZ(value);
+    MoveZ(disp_value);
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 15:
-    MoveM(value);
+    MoveM(disp_value);
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   case 16:
-    MoveC(value);
+    MoveC(disp_value);
+    delay(1000);
+    res = RPC1.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 }

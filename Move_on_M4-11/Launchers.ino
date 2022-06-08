@@ -68,8 +68,8 @@ bool goRecap() {
 
 byte goSetParams(byte index,byte bytes0,byte bytes1,byte bytes2,byte bytes3){
   byte data[4] = {bytes0,bytes1,bytes2,bytes3};
-  long param = bytetolong(data);
-  parameters[index] = param;
+  int32_t param = bytetolong(data);
+  *parameters[index] = param*micro_ratio;
   //*Pstatus = 13;
   return bytes0;
 }
@@ -78,20 +78,24 @@ bool readM4Params(){
   return true;
 }
 
-long goMoveZ(long val){
+byte goMoveZ(byte bytes0, byte bytes1, byte bytes2, byte bytes3){
   *Pstatus = 14;
-  value = val;
-  return val;
+  byte data[4] = {bytes0,bytes1,bytes2,bytes3};
+  disp_value = bytetolong(data);
+  RPC1.println(disp_value);
+  return bytes0;
 }
 
-long goMoveM(long val){
-  *Pstatus = 14;
-  value = val;
-  return val;
+long goMoveM(byte bytes0, byte bytes1, byte bytes2, byte bytes3){
+  *Pstatus = 15;
+  byte data[4] = {bytes0,bytes1,bytes2,bytes3};
+  disp_value = bytetolong(data);
+  return bytes0;
 }
 
-long goMoveC(long val){
-  *Pstatus = 14;
-  value = val;
-  return val;
+long goMoveC(byte bytes0, byte bytes1, byte bytes2, byte bytes3){
+  *Pstatus = 16;
+  byte data[4] = {bytes0,bytes1,bytes2,bytes3};
+  disp_value = bytetolong(data);
+  return bytes0;
 }

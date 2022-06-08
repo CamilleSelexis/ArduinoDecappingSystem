@@ -1,16 +1,16 @@
 //Nominal stepper speed
 void stepper_std(){
 
-  ZSPoint->setMaxSpeed(4000*micro_ratio); //9000
-  ZSPoint->setAcceleration(2000*micro_ratio);
+  ZSPoint->setMaxSpeed(Zspeed*micro_ratio); //9000
+  ZSPoint->setAcceleration(Zacc*micro_ratio);
   ZSPoint->setMinPulseWidth(MPW);
 
-  CSPoint->setMaxSpeed(4000*micro_ratio); //9000
-  CSPoint->setAcceleration(3500*micro_ratio);
+  CSPoint->setMaxSpeed(Cspeed*micro_ratio); //9000
+  CSPoint->setAcceleration(Cacc*micro_ratio);
   CSPoint->setMinPulseWidth(MPW);
 
-  MSPoint->setMaxSpeed(3000*micro_ratio); //10000
-  MSPoint->setAcceleration(2000*micro_ratio);
+  MSPoint->setMaxSpeed(Mspeed*micro_ratio); //10000
+  MSPoint->setAcceleration(Macc*micro_ratio);
   MSPoint->setMinPulseWidth(MPW);
 
  }
@@ -18,17 +18,20 @@ void stepper_std(){
  void stepper_screwspd() { //Set speed for screw/unscrew of Z and C
 // Z must move by 8 mm = 4 full turn
 // while C does 0.8 turn
-// Can increase Zmove a bit more
+// Can increase Zmove a bit more  
+  int screw_time = 4; 
   unsigned long Zmove = ceil(Zgear*motor_step_rot*micro_ratio*4.1); //in steps
   unsigned long Cmove = ceil(stp1tour*0.8); //in steps
-  unsigned long Zspeed = ceil(Zmove/screw_time); //take 10 sec to unscrew the cap
-  unsigned long Cspeed = ceil(Cmove/screw_time);
-  ZSPoint->setMaxSpeed(Zspeed);
-  ZSPoint->setAcceleration(Zspeed);
+  unsigned long Zscrspeed = ceil(Zmove/(ScrewSpeed/micro_ratio)); //take 10 sec to unscrew the cap
+  unsigned long Cscrspeed = ceil(Cmove/(ScrewSpeed/micro_ratio));
+  RPC1.println(ScrewSpeed);
+  RPC1.println(Zscrspeed);
+  ZSPoint->setMaxSpeed(Zscrspeed);
+  ZSPoint->setAcceleration(Zscrspeed);
   ZSPoint->setMinPulseWidth(MPW);
 
-  CSPoint->setMaxSpeed(Cspeed);
-  CSPoint->setAcceleration(Cspeed);
+  CSPoint->setMaxSpeed(Cscrspeed);
+  CSPoint->setAcceleration(Cscrspeed);
   CSPoint->setMinPulseWidth(MPW);
 
  }
@@ -36,30 +39,33 @@ void stepper_std(){
 //Stepper speed used during the initialisation
  void stepper_init()  {
 
-  ZSPoint->setMaxSpeed(2750*micro_ratio);
-  ZSPoint->setAcceleration(3000*micro_ratio);
+  ZSPoint->setMaxSpeed(ceil(Zspeed*micro_ratio*0.5));
+  ZSPoint->setAcceleration(ceil(Zacc*micro_ratio*0.5));
   ZSPoint->setMinPulseWidth(MPW);
 
-  CSPoint->setMaxSpeed(2750*micro_ratio);
-  CSPoint->setAcceleration(2500*micro_ratio);
+  CSPoint->setMaxSpeed(ceil(Cspeed*micro_ratio*0.5));
+  CSPoint->setAcceleration(ceil(Cacc*micro_ratio*0.5));
   CSPoint->setMinPulseWidth(MPW);
 
-  MSPoint->setMaxSpeed(1650*micro_ratio);
-  MSPoint->setAcceleration(2000*micro_ratio);
+  MSPoint->setMaxSpeed(ceil(Mspeed*micro_ratio*0.5));
+  MSPoint->setAcceleration(ceil(Macc*micro_ratio*0.5));
   MSPoint->setMinPulseWidth(MPW);
  }
 
  void slow_initZ() {
-  ZSPoint->setMaxSpeed(1300*micro_ratio);
-  ZSPoint->setAcceleration(3000*micro_ratio);
+  ZSPoint->setMaxSpeed(ceil(Zspeed*micro_ratio*0.5));
+  ZSPoint->setAcceleration(ceil(Zacc*micro_ratio*0.5));
+  ZSPoint->setMinPulseWidth(MPW);
  }
 
 void slow_initC() {
-  CSPoint->setMaxSpeed(3000*micro_ratio);
-  CSPoint->setAcceleration(2500*micro_ratio);
+  CSPoint->setMaxSpeed(ceil(Cspeed*micro_ratio*0.5));
+  CSPoint->setAcceleration(ceil(Cacc*micro_ratio*0.5));
+  CSPoint->setMinPulseWidth(MPW);
  }
 
 void slow_initM() {
-  MSPoint->setMaxSpeed(1300*micro_ratio);
-  MSPoint->setAcceleration(1500*micro_ratio);
+  MSPoint->setMaxSpeed(ceil(Mspeed*micro_ratio*0.5));
+  MSPoint->setAcceleration(ceil(Macc*micro_ratio*0.5));
+  MSPoint->setMinPulseWidth(MPW);
  }

@@ -123,9 +123,6 @@ void refC() {
       CSPoint->run();
       if(analogRead(A0)>950){
         done_C = true;
-        CSPoint->stop();
-        CSPoint->setCurrentPosition(0);
-        RPC1.println("Rotation axe aligned");
       }
     }
   }
@@ -134,13 +131,13 @@ void refC() {
       //RPC1.println("Going CCW");
       CSPoint->run();
       if(analogRead(A0)< 300){
-        done_C = true;
-        CSPoint->stop();
-        CSPoint->setCurrentPosition(0);
-        RPC1.println("Rotation axe aligned");
+        done_C = true; 
       }
     }
   }
+  CSPoint->stop();
+  CSPoint->setCurrentPosition(0);
+  RPC1.println("Rotation axe aligned");
 }
 void ToStandby(){
   RPC1.println("Going back to standby position");
@@ -314,12 +311,18 @@ void runZMC_toTargets(long target_z,long target_m, long target_c) {
   }
 }
 
-void MoveZ(long value){
-  
+void MoveZ(int32_t target){
+  RPC1.println("Will move Z by : " + String(target));
+  ZSPoint->move(target*micro_ratio);
+  while(ZSPoint->isRunning()){stepperZ.run();}
 }
-void MoveC(long val){
-  
+void MoveM(int32_t target){
+  RPC1.println("Will move M by : " + String(target));
+  MSPoint->move(target*micro_ratio);
+  while(MSPoint->isRunning()){stepperM.run();}
 }
-void MoveM(long val){
-  
+void MoveC(int32_t target){
+  RPC1.println("Will move C by : " + String(target));
+  CSPoint->move(target*micro_ratio);
+  while(CSPoint->isRunning()){stepperC.run();}
 }

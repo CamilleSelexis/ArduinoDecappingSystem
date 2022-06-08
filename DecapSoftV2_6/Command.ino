@@ -46,8 +46,9 @@ void Decap(){
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
+      *Pworking = true;
       if(!RPC1.call("Decap",(int)C_pos).as<int>())
-        {Serial.println("Error calling Decap");}
+        {Serial.println("Error calling Decap");}     
       Wait();
       motorOFF;
       mvt_out;
@@ -90,6 +91,7 @@ void Align(){
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
+      *Pworking = true;
       temp = RPC1.call("Align",(int)C_pos).as<int>();
       Wait();
       motorOFF;
@@ -192,25 +194,25 @@ void SudoRecap(){
     mvt_out;
   }
   
-void Move(char target, int val){
+void Move(char target, byte val0,byte val1, byte val2, byte val3){
   if(target == 'Z'){
-    long value = RPC1.call("MoveZ",val).as<long>();
+    byte value = RPC1.call("MoveZ",val0,val1,val2,val3).as<byte>();
   }
   if(target == 'M'){
-    long value = RPC1.call("MoveX",val).as<long>();
+    byte value = RPC1.call("MoveM",val0,val1,val2,val3).as<byte>();
   }
     if(target == 'C'){
-    long value = RPC1.call("MoveX",val).as<long>();
+    byte value = RPC1.call("MoveC",val0,val1,val2,val3).as<byte>();
   }
 }
-void Speed(char target, int val){
+void Speed(char target, byte val0,byte val1, byte val2, byte val3){
   
 }
 
 void Wait() {
   delay(500);
   RPC1.flush();
-  while(!(RPC1.parseInt(SKIP_NONE)==1)){
+  while(*Pworking){
     delay(100);
     String buffer = "";
     while (RPC1.available()) {
@@ -220,8 +222,19 @@ void Wait() {
     if (buffer.length() > 0) {
       Serial.print(buffer);
     }
-  } 
-  *Pworking = RPC1.call("Backto1").as<bool>();
+  }
+//  while(!(RPC1.parseInt(SKIP_NONE)==1)){
+//    delay(100);
+//    String buffer = "";
+//    while (RPC1.available()) {
+//      buffer += (char)RPC1.read(); // Fill the buffer with characters
+//    }
+//  
+//    if (buffer.length() > 0) {
+//      Serial.print(buffer);
+//    }
+//  } 
+  //*Pworking = RPC1.call("Backto1").as<bool>();
   delay(100);
   }
   
