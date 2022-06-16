@@ -16,8 +16,6 @@ using namespace rtos;
 #define mvt_out digitalWrite(LEDR,LOFF);digitalWrite(LEDG,LON)
 
 #define runCZ    stepperC.run();stepperZ.run()
-//#define runMZ    stepperM.run();stepperZ.run()
-//#define runXC    stepperX.run();stepperC.run()
 #define runMC    stepperM.run();stepperC.run()
 #define runMZ    stepperM.run();stepperZ.run()
 #define runALL   stepperC.run();stepperM.run();stepperZ.run()
@@ -33,7 +31,6 @@ const int LON = LOW; // Voltage level is inverted for the LED
 const int LOFF = HIGH;
 const int motor_step_rot = 200;  //Number of steps in rot of the motors
 const int micro_ratio = 4; //Microsteps ratio
-//const int screw_time = 4; //Time to screw/unscrew [s]
 const uint MPW = 10;        //Min pulse width in us
 
 //uint32_t Zzero_offset = 140000*micro_ratio; //Standby position Z [steps]
