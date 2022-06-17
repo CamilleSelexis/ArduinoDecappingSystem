@@ -67,12 +67,12 @@ const int cal_prop = 28; //Factor for the calibration based on the dist from the
 int32_t Zstandby = 140000;
 int32_t Mstandby = 63000;
 int32_t Cstandby = 1;
-int32_t Zspeed = 1500;
-int32_t Mspeed = 1500;
-int32_t Cspeed = 1500;
-int32_t Zacc = 1000;
-int32_t Macc = 1000;
-int32_t Cacc = 1000;
+int32_t Zspeed = 1000;
+int32_t Mspeed = 1000;
+int32_t Cspeed = 1000;
+int32_t Zacc = 500;
+int32_t Macc = 500;
+int32_t Cacc = 500;
 int32_t ScrewSpeed = 8;
 int32_t* parameters[10] = {&Zstandby, &Mstandby, &Cstandby,&Zspeed,&Mspeed,&Cspeed,&Zacc,&Macc,&Cacc,&ScrewSpeed};
  //Ethernet related ---------------------
@@ -233,6 +233,7 @@ void loop() {
                         case 'Z':
                           data = client_manual.read();
                           if(data == 'M'){
+                            delay(50);
                             byte value[4] = {0,0,0,0};//The value is a long
                             value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
                             value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();

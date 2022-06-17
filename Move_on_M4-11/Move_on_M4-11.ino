@@ -31,7 +31,7 @@ const int LON = LOW; // Voltage level is inverted for the LED
 const int LOFF = HIGH;
 const int motor_step_rot = 200;  //Number of steps in rot of the motors
 const int micro_ratio = 4; //Microsteps ratio
-const uint MPW = 10;        //Min pulse width in us
+const uint MPW = 20;        //Min pulse width in us
 
 //uint32_t Zzero_offset = 140000*micro_ratio; //Standby position Z [steps]
 const long Z_pos = 227500*micro_ratio;   //Position of the claws at the cap level
@@ -50,7 +50,7 @@ const uint pasLBW = 8;     //Pas de vis du Labware
 //uint32_t Mzero_offset = 63000*micro_ratio ; //63000*micro_ratio; //Standby position M
 const long M_open = 63000*micro_ratio; //Open position for the claws
 const uint Mgear = 100;       //M motor gearbox
-const long M_ser = 53000*micro_ratio;         //Active position M
+const long M_ser = 52000*micro_ratio;         //Active position M
 
 volatile int8_t status = -1;
 volatile int8_t* Pstatus = &status;
@@ -68,12 +68,12 @@ long* PZ_screw = &Z_screw;
 int32_t Zzero_offset = 140000*micro_ratio;
 int32_t Mzero_offset = 63000*micro_ratio;
 int32_t Czero_offset = 1*micro_ratio;
-int32_t Zspeed = 1500*micro_ratio;
-int32_t Mspeed = 1500*micro_ratio;
-int32_t Cspeed = 1500*micro_ratio;
-int32_t Zacc = 1000*micro_ratio;
-int32_t Macc = 1000*micro_ratio;
-int32_t Cacc = 1000*micro_ratio;
+int32_t Zspeed = 1000*micro_ratio;
+int32_t Mspeed = 1000*micro_ratio;
+int32_t Cspeed = 1000*micro_ratio;
+int32_t Zacc = 500*micro_ratio;
+int32_t Macc = 500*micro_ratio;
+int32_t Cacc = 500*micro_ratio;
 int32_t ScrewSpeed = 8*micro_ratio;
 int32_t *parameters[10] = {&Zzero_offset, &Mzero_offset, &Czero_offset,&Zspeed,&Mspeed,&Cspeed,&Zacc,&Macc,&Cacc,&ScrewSpeed};
 
