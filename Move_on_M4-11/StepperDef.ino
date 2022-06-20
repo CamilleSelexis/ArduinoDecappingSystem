@@ -24,8 +24,8 @@ void stepper_std(){
   unsigned long Cmove = ceil(stp1tour*0.8); //in steps
   unsigned long Zscrspeed = ceil(Zmove/(ScrewSpeed/micro_ratio)); //take 10 sec to unscrew the cap
   unsigned long Cscrspeed = ceil(Cmove/(ScrewSpeed/micro_ratio));
-  RPC1.println(ScrewSpeed);
-  RPC1.println(Zscrspeed);
+  RPC.println(ScrewSpeed);
+  RPC.println(Zscrspeed);
   ZSPoint->setMaxSpeed(Zscrspeed);
   ZSPoint->setAcceleration(Zscrspeed);
   ZSPoint->setMinPulseWidth(MPW);

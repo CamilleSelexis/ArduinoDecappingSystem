@@ -15,7 +15,7 @@ bool Getdowngo() {
 
 int Aligngo(int Cpos) {
   //int temp = Cpos;
-  //RPC1.println(Cpos);
+  //RPC.println(Cpos);
   //delay(100);
   *PC_pos = Cpos;
   *Pstatus = 4;
@@ -82,7 +82,7 @@ byte goMoveZ(byte bytes0, byte bytes1, byte bytes2, byte bytes3){
   *Pstatus = 14;
   byte data[4] = {bytes0,bytes1,bytes2,bytes3};
   disp_value = bytetolong(data);
-  RPC1.println(disp_value);
+  RPC.println(disp_value);
   return bytes0;
 }
 

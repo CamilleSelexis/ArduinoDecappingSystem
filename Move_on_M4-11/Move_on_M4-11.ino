@@ -9,7 +9,7 @@ Removed X Axis
 
 #include <AccelStepper.h>
 #include "Arduino.h"
-#include "RPC_internal.h"
+#include "RPC.h"
 using namespace rtos;
 
 #define mvt_in  digitalWrite(LEDG,LOFF);digitalWrite(LEDR,LON)
@@ -119,26 +119,26 @@ void setup() {
   stepperC.setPinsInverted(true,true,true);
   stepperM.setPinsInverted(false,true,true); 
   
-  RPC1.begin();
-  RPC1.bind("Ref",Refgo);
-  RPC1.bind("Get_flask",Get_flaskgo);
-  RPC1.bind("Align",Aligngo);
-  RPC1.bind("Unscrew",Unscrewgo);
-  RPC1.bind("reScrew",reScrewgo);
-  RPC1.bind("Bringback",Bringbackgo);
-  RPC1.bind("untigh_up",untigh_upgo);
-  RPC1.bind("isMVT",isMVT);
-  RPC1.bind("GetDown",Getdowngo);
-  RPC1.bind("Backto1",backto1);
-  RPC1.bind("RefM",goRefM);
-  RPC1.bind("GoToStandby",goToStandby);
-  RPC1.bind("Decap",goDecap);
-  RPC1.bind("Recap",goRecap);
-  RPC1.bind("setParams",goSetParams);
-  RPC1.bind("MoveZ",goMoveZ);
-  RPC1.bind("MoveM",goMoveM);
-  RPC1.bind("MoveC",goMoveC);
-  RPC1.bind("readM4Params",readM4Params);
+  RPC.begin();
+  RPC.bind("Ref",Refgo);
+  RPC.bind("Get_flask",Get_flaskgo);
+  RPC.bind("Align",Aligngo);
+  RPC.bind("Unscrew",Unscrewgo);
+  RPC.bind("reScrew",reScrewgo);
+  RPC.bind("Bringback",Bringbackgo);
+  RPC.bind("untigh_up",untigh_upgo);
+  RPC.bind("isMVT",isMVT);
+  RPC.bind("GetDown",Getdowngo);
+  RPC.bind("Backto1",backto1);
+  RPC.bind("RefM",goRefM);
+  RPC.bind("GoToStandby",goToStandby);
+  RPC.bind("Decap",goDecap);
+  RPC.bind("Recap",goRecap);
+  RPC.bind("setParams",goSetParams);
+  RPC.bind("MoveZ",goMoveZ);
+  RPC.bind("MoveM",goMoveM);
+  RPC.bind("MoveC",goMoveC);
+  RPC.bind("readM4Params",readM4Params);
 
   //TO BE REMOVED
   stepperC.setCurrentPosition(Czero_offset);
@@ -151,93 +151,82 @@ int temp = 0;
 bool res = true;
 switch(status){
   case -1: //Initial state, before init
-    //RPC1.println("0");
+    //RPC.println("0");
     delay(100);
     break;
 
   case 0: //M4 get in this state after finishing a task
-    //RPC1.println("1");
+    //RPC.println("1");
     delay(100);
     break;
 
   case 1:
+    delay(200);
     pin_init();
     Ref();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 2:
-    noInterrupts();
+    //noInterrupts();
     pin_reinit();
     Get_flask();
-    interrupts();
+    //interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   
   case 3:
-    noInterrupts();
     pin_reinit();
     Getdown();
-    interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 4:
-    //RPC1.println("4");
-    noInterrupts();
+    //RPC.println("4");
     //temp = *PC_pos;
-    //RPC1.println(temp);
+    //RPC.println(temp);
     pin_reinit();
     Align();
-    interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 5:
-    noInterrupts();
     pin_reinit();
     *PZ_screw = Unscrew();
-    interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 6:
-    noInterrupts();
     pin_reinit();
     Bringback();
-    interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 7:
-    noInterrupts();
     pin_reinit();
     reScrew(Z_screw);
-    interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   
   case 8:
-    noInterrupts();
     pin_reinit();
     untigh_up();
-    interrupts();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -248,14 +237,14 @@ switch(status){
     MSPoint->moveTo(Mzero_offset);
     while(abs(MSPoint->distanceToGo())>0){stepperM.run();}
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
     
   case 10:
     pin_reinit();
     ToStandby();delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
     
@@ -263,7 +252,7 @@ switch(status){
     pin_reinit();
     Decap();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
@@ -271,38 +260,38 @@ switch(status){
     pin_reinit();
     Recap();
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   case 13:
-    RPC1.flush();
-    RPC1.print("Parameters written :");
+    RPC.flush();
+    RPC.print("Parameters written :");
     for(int i = 0;i<10;i++){
-      RPC1.print(*parameters[i]/micro_ratio);RPC1.print(" ");
+      RPC.print(*parameters[i]/micro_ratio);RPC.print(" ");
     }
-    RPC1.println(" ");
+    RPC.println(" ");
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 14:
     MoveZ(disp_value);
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 
   case 15:
     MoveM(disp_value);
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
   case 16:
     MoveC(disp_value);
     delay(1000);
-    res = RPC1.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("M4TaskCompleted").as<bool>();
     status = 0;
     break;
 }

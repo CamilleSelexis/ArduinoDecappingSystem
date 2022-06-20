@@ -46,8 +46,9 @@ long detectEdges() {
   float lineAvg[ly];
   float line[ly];
   float edge_pos[100]; //Max size if every single pixel is a max (impossible)
-  if (cam.grab(fb) == 0){
+  if (cam.grabFrame(FB) == 0){
     Serial.println("Capture done");
+    Pfb = FB.getBuffer();
   }
   else{Serial.println("Couldn't take a capture");}
   for(int i = 0; i<lx; i++){ //Crop the framebuffer and put it in 2D

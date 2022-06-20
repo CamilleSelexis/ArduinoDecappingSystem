@@ -6,7 +6,12 @@ void pin_init() {
   pinMode(pin_BZ,INPUT_PULLDOWN);     //Z-axis zero
   attachInterrupt(digitalPinToInterrupt(pin_BZ), reset_Z, FALLING);
 }
-
+void disableInt(){
+  detachInterrupt(pin_BZ);
+}
+void enableInt(){
+  attachInterrupt(digitalPinToInterrupt(pin_BZ), reset_Z, FALLING);
+}
 void pin_reinit(){
   pinMode(D2,OUTPUT); //Step M
   pinMode(D3,OUTPUT); //Step Z

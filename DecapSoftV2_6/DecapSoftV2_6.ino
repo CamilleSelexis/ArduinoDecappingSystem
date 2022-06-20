@@ -1,20 +1,20 @@
 /*
-Decapeur Software V2.5 by Jérémie Pochon & Camille Aussems
-Selexis Genève 17.01.2022
-To run on an Arduino Portenta H7 with a vision shield
-M7 core
-In coordination with Move_on_M4 on M4 core
-Vision not yet verified
+Decap software v2.6
+mbed-core v3.0
+Developped by J. Pochon & C. Aussems
+Upload on portenta H7 M7 core
+Upload Move on M4 on portenta H7 M4 core
 */
 
 #include <Portenta_Ethernet.h>
 #include <Ethernet.h>
-#include <camera.h>
 #include <math.h>
 #include <stdio.h>
 
 #include "Arduino.h"
-#include "RPC_internal.h"
+#include "RPC.h"
+#include "camera.h"
+#include "himax.h"
 using namespace rtos;
 
 #include <stdint.h>
@@ -45,8 +45,10 @@ volatile bool M4work = false;          //Cette variable est vrai lorsque le M4 e
 volatile bool *Pworking = &M4work;     //N'est pas utilisé pour le moment mais pourrait être utile
 
 int baud = 115200;          //Baud rate of the serial comunication
-
-CameraClass cam;
+HM01B0 himax;
+Camera cam(himax);
+#define IMAGE_MODE CAMERA_GRAYSCALE
+FrameBuffer FB(320,240,1);
 uint8_t fb[320*240];        //Buffer for the image capture
 uint8_t *Pfb = fb; 
 const int imgH = 240; //X dimension
@@ -78,32 +80,32 @@ int32_t* parameters[10] = {&Zstandby, &Mstandby, &Cstandby,&Zspeed,&Mspeed,&Cspe
  //Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
-IPAddress ip(10,0,16,10);   //Adresse IP
-//IPAddress ip(192,168,0,2);
+//IPAddress ip(10,0,16,10);   //Adresse IP
+IPAddress ip(192,168,0,2);
 EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52 is the number of the lab
 
 
 //-------------------------------------------//
 void setup(){
   bootM4();
-  RPC1.begin();
-  RPC1.bind("M4TaskCompleted",M4TaskCompleted);
-  //RPC1.bind("setParams", setParams);
+  RPC.begin();
+  RPC.bind("M4TaskCompleted",M4TaskCompleted);
+  //RPC.bind("setParams", setParams);
   Serial.begin(baud); //Begin serial communication aka discussion through usb
-  Serial.println("Serial Coms started. RPC1 starting...");
+  Serial.println("Serial Coms started. RPC starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
   digitalWrite(LEDB,LON);
   
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
-  if(cam.begin(CAMERA_R320x240, 30)== 0){
+  if(cam.begin(CAMERA_R320x240, IMAGE_MODE, 30)){
     Serial.println("Cam initialised");//initialise the camera
   }
   else{
     Serial.println("Cam failed to initialize");
   }
   //cam.standby(true);                //Put it in standby mode
-                 //Initialise the RPC1 coms, also boots the M4
+                 //Initialise the RPC coms, also boots the M4
   
   Serial.println("Ethernet Coms starting...");
   
@@ -213,7 +215,8 @@ void loop() {
 
           }
           else if(currentLine.endsWith("Manual control")){
-            client.print("Going into manual control, use the serial console to control me");
+            Serial.println("Going into manual control");
+            client.print("Going into manual control");
             client.stop();
             digitalWrite(LEDG,HIGH);
             digitalWrite(LEDB,HIGH);
@@ -243,8 +246,8 @@ void loop() {
                             motorON;
                             Move('Z',value[0],value[1],value[2],value[3]);
                             while(*Pworking){
-                              if(RPC1.available()){
-                                client_manual.write(RPC1.read());
+                              if(RPC.available()){
+                                client_manual.write(RPC.read());
                               }
                             }
                             motorOFF;
@@ -258,8 +261,8 @@ void loop() {
                             *Pworking = true;
                             Speed('Z',value[0],value[1],value[2],value[3]);
                             while(*Pworking){
-                              if(RPC1.available()){
-                                client_manual.write(RPC1.read());
+                              if(RPC.available()){
+                                client_manual.write(RPC.read());
                               }
                             }
                           }
@@ -276,8 +279,8 @@ void loop() {
                           motorON;
                           Move('M',value[0],value[1],value[2],value[3]);
                           while(*Pworking){
-                            if(RPC1.available()){
-                              client_manual.write(RPC1.read());
+                            if(RPC.available()){
+                              client_manual.write(RPC.read());
                             }
                           }
                           motorOFF;
@@ -291,8 +294,8 @@ void loop() {
                           *Pworking = true;
                           Speed('M',value[0],value[1],value[2],value[3]);
                           while(*Pworking){
-                            if(RPC1.available()){
-                              client_manual.write(RPC1.read());
+                            if(RPC.available()){
+                              client_manual.write(RPC.read());
                             }
                           }
                         }
@@ -310,8 +313,8 @@ void loop() {
                             motorON;
                             Move('C',value[0],value[1],value[2],value[3]);
                             while(*Pworking){
-                              if(RPC1.available()){
-                                client_manual.write(RPC1.read());
+                              if(RPC.available()){
+                                client_manual.write(RPC.read());
                               }
                             }
                             motorOFF;
@@ -325,8 +328,8 @@ void loop() {
                             *Pworking = true;
                             Speed('C',value[0],value[1],value[2],value[3]);
                             while(*Pworking){
-                              if(RPC1.available()){
-                                client_manual.write(RPC1.read());
+                              if(RPC.available()){
+                                client_manual.write(RPC.read());
                               }
                             }
                           }

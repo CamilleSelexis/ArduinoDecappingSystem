@@ -25,14 +25,14 @@ void write_parameters(EthernetClient* client_pntr){
   for(int i = 0;i<10;i++){
     *parameters[i] = params[i];
     byte bytes[4] = {(params[i] >> 0) & 0xFF, (params[i] >> 8) & 0xFF, (params[i] >> 16) & 0xFF, (params[i] >> 24) & 0xFF};
-    byte result = RPC1.call("setParams",i,bytes[0],bytes[1],bytes[2],bytes[3]).as<byte>(); //From M7 setting a variable in M4
+    byte result = RPC.call("setParams",i,bytes[0],bytes[1],bytes[2],bytes[3]).as<byte>(); //From M7 setting a variable in M4
     delay(100);
     Serial.println("Called the RPC function " + String(params[i]));
   }
-  bool result = RPC1.call("readM4Params").as<bool>();
+  bool result = RPC.call("readM4Params").as<bool>();
   while(*Pworking){
-    if(RPC1.available()){
-      client_pntr->write(RPC1.read());
+    if(RPC.available()){
+      client_pntr->write(RPC.read());
     }
   }
   client_pntr->flush();
