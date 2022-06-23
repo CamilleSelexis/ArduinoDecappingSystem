@@ -1,14 +1,11 @@
-//Functions serving the detection algorythm
+//Functions used by the detection algorithm
 // Could add a term that is proportional to its distance from the middle
 //Calls GetPos() and check its reliability over 2 iterations
 long finalPos() {
   //cam.standby(false);
-//    while(Serial.read() != '1'){};
-//     Serial.write(fb, 320*240);
   uint8_t tol = 5;
   uint8_t i = 0;
   delay(50);
-
   long temp1 = detectEdges();
   delay(50);
   long temp2 = detectEdges();
@@ -54,7 +51,8 @@ long detectEdges() {
   for(int i = 0; i<lx; i++){ //Crop the framebuffer and put it in 2D
     for(int j = 0; j<ly;j++) {
       cropped2D[i][j] = 0;
-      cropped2D[i][j] = fb[(j+cropy[0])*imgW+(i+cropx[0])];
+      cropped2D[i][j] = *(Pfb+ (j+cropy[0])*imgW+(i+cropx[0]));
+      //cropped2D[i][j] = fb[(j+cropy[0])*imgW+(i+cropx[0])];
       result2D[i][j] = 0;
     }
   }
@@ -183,4 +181,18 @@ void convolution_2D(float N[lx][ly], float M[3][3], float P[lx][ly]) {
           //P[i][j] = abs(P[i][j]);
       }
   }
+}
+//Takes a capture and prints it
+void printCapture(){
+  if (cam.grabFrame(FB) == 0){
+    Serial.println("Capture done");
+    Pfb = FB.getBuffer();
+    for(int i = 0; i<imgW;i++){
+      for(int j = 0; j<imgH;j++){
+        Serial.print(*(Pfb+(i*imgH + j))); Serial.print(", ");
+      }
+      Serial.println();
+    }
+  }
+  else{Serial.println("Couldn't take a capture");}
 }

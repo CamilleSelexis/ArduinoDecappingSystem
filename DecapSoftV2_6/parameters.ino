@@ -70,13 +70,12 @@ int chartoint(char data[2]){
   Serial.println(a);
   return a;
 }
-byte* longtochar(long mylong){
-  static byte myByte[4];
-  myByte[3] = mylong & 0xFF;
-  myByte[2] = (mylong>>8) & 0xFF;
-  myByte[1] = (mylong>>16) & 0xFF;
-  myByte[0] = (mylong>>24) & 0xFF;
-  return myByte;
+void longtochar(long mylong,byte* myByte){
+  //static byte myByte[4];
+  *(myByte+3) = mylong & 0xFF;
+  *(myByte+2) = (mylong>>8) & 0xFF;
+  *(myByte+1) = (mylong>>16) & 0xFF;
+  *(myByte) = (mylong>>24) & 0xFF;
 }
 
 bool M4TaskCompleted(){

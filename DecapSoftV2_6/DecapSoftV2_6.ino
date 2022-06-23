@@ -45,14 +45,18 @@ volatile bool M4work = false;          //Cette variable est vrai lorsque le M4 e
 volatile bool *Pworking = &M4work;     //N'est pas utilisé pour le moment mais pourrait être utile
 
 int baud = 115200;          //Baud rate of the serial comunication
+
+const int imgH = 240; //X dimension
+const int imgW = 320; //Y dimension
 HM01B0 himax;
 Camera cam(himax);
 #define IMAGE_MODE CAMERA_GRAYSCALE
-FrameBuffer FB(320,240,1);
-uint8_t fb[320*240];        //Buffer for the image capture
+#define RESOLUTION CAMERA_R320x240
+FrameBuffer FB(imgH,imgW,1);
+
+uint8_t fb[imgW*imgH];        //Buffer for the image capture
 uint8_t *Pfb = fb; 
-const int imgH = 240; //X dimension
-const int imgW = 320; //Y dimension
+
 const int cropx[2] = {120,140};    //Size of the cropped image
 const int cropy[2] = {100,200};
 const int ly = cropy[1]-cropy[0]; //Length of the cropped dimmensions
@@ -98,13 +102,13 @@ void setup(){
   
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
-  if(cam.begin(CAMERA_R320x240, IMAGE_MODE, 30)){
+  if(cam.begin(RESOLUTION, IMAGE_MODE, 15)){
     Serial.println("Cam initialised");//initialise the camera
   }
   else{
     Serial.println("Cam failed to initialize");
   }
-  //cam.standby(true);                //Put it in standby mode
+  cam.setStandby(true);                //Put it in standby mode
                  //Initialise the RPC coms, also boots the M4
   
   Serial.println("Ethernet Coms starting...");
@@ -196,7 +200,30 @@ void loop() {
           finalPos();
           client.stop();
                   
+        }
+          
+        else if(currentLine.endsWith("print")){
+          
+          //printCapture();
+          cam.setStandby(false);
+          Serial.println("Running the detection algorithm");
+          long edge = detectEdges();
+          byte myByte[4];
+          byte* mb = myByte;
+          longtochar(edge,mb);
+          client.write(myByte,4);
+          delay(500);
+          Serial.println("Now sending the picture");
+          if (cam.grabFrame(FB,500) == 0){
+            Serial.println("Capture done");
+            Serial.print("Bytes to be sent ");
+            Serial.println(client.write(FB.getBuffer(),cam.frameSize()));
           }
+          else{Serial.println("Couldn't take a capture");
+          client.print("Couldn't take a capture");}
+          client.stop();
+        }
+        
         else if(currentLine.endsWith("Align")){
           Serial.println("Alignment Routine");
           client.print("Alignement Routine");
