@@ -27,7 +27,7 @@ void write_parameters(EthernetClient* client_pntr){
     byte bytes[4] = {(params[i] >> 0) & 0xFF, (params[i] >> 8) & 0xFF, (params[i] >> 16) & 0xFF, (params[i] >> 24) & 0xFF};
     byte result = RPC.call("setParams",i,bytes[0],bytes[1],bytes[2],bytes[3]).as<byte>(); //From M7 setting a variable in M4
     delay(100);
-    Serial.println("Called the RPC function " + String(params[i]));
+    //Serial.println("Called the RPC function " + String(params[i]));
   }
   bool result = RPC.call("readM4Params").as<bool>();
   while(*Pworking){

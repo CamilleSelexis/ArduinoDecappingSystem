@@ -166,21 +166,25 @@ void loop() {
         
         if(currentLine.endsWith("Status")){
           Status();
+          client.print("end\n");
           client.stop();
         } 
         else if(currentLine.endsWith("Initialize")){
           client.print("Initialize");
           refAllHome();
+          client.print("end\n");
           client.stop();
           } 
         else if(currentLine.endsWith("Decap")){
           client.print("Decap routine");
           Decap();
+          client.print("end\n");
           client.stop();
         }
         else if(currentLine.endsWith("Recap")){
           client.print("Recap routine");
           Recap();
+          client.print("end\n");
           client.stop();
         }  
         else if(currentLine.endsWith("Sudo Uncap")){
@@ -193,11 +197,13 @@ void loop() {
           }
         else if(currentLine.endsWith("Standby")){
           GoToStandby();
+          client.print("end\n");
           client.stop();
         }
         else if(currentLine.endsWith("capture")){
           Serial.println("Capture Routine");
           finalPos();
+          client.print("end\n");
           client.stop();
                   
         }
@@ -221,13 +227,15 @@ void loop() {
           }
           else{Serial.println("Couldn't take a capture");
           client.print("Couldn't take a capture");}
+          client.print("end\n");
           client.stop();
         }
         
         else if(currentLine.endsWith("Align")){
           Serial.println("Alignment Routine");
           client.print("Alignement Routine");
-          Align(); 
+          Align();
+          client.print("end\n");
           client.stop();       
           }
           else if(currentLine.endsWith("ReadParameters")){
