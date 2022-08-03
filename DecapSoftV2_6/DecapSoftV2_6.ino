@@ -15,6 +15,7 @@ Upload Move on M4 on portenta H7 M4 core
 #include "RPC.h"
 #include "camera.h"
 #include "himax.h"
+
 using namespace rtos;
 
 #include <stdint.h>
@@ -86,7 +87,7 @@ int32_t* parameters[10] = {&Zstandby, &Mstandby, &Cstandby,&Zspeed,&Mspeed,&Cspe
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
 //IPAddress ip(10,0,16,10);   //Adresse IP
-IPAddress ip(192,168,0,101); //Does not tolerate 192.168.1.101
+IPAddress ip(192,168,1,101); //Does not tolerate 192.168.1.101
 EthernetServer server = EthernetServer(80);  // (port 80 is default for HTTP) 52 is the number of the lab
 
 
@@ -191,17 +192,17 @@ void loop() {
           Status();
           endConnection(client_pntr);
         } 
-        else if(currentLine.endsWith("Initialize")){
+        else if(currentLine.endsWith("initialize")){
           answerHttp(client_pntr,currentLine);
           refAllHome();
           endConnection(client_pntr);
           } 
-        else if(currentLine.endsWith("Decap")){
+        else if(currentLine.endsWith("decap")){
           answerHttp(client_pntr,currentLine);
           Decap();
           endConnection(client_pntr);
         }
-        else if(currentLine.endsWith("Recap")){
+        else if(currentLine.endsWith("recap")){
           answerHttp(client_pntr,currentLine);
           Recap();
           endConnection(client_pntr);
@@ -218,7 +219,7 @@ void loop() {
           GoToStandby();
           endConnection(client_pntr);
         }
-        else if(currentLine.endsWith("Capture")){
+        else if(currentLine.endsWith("capture")){
           answerHttp(client_pntr,currentLine);
           finalPos();
           endConnection(client_pntr);
@@ -229,6 +230,31 @@ void loop() {
           
           //printCapture();
           cam.setStandby(false);
+
+//          if (cam.grabFrame(FB,500) == 0){
+//            Serial.println("Capture done");
+//          }
+//          uint8_t capture[240*320];
+//          uint8_t* Pcapture = capture;
+//          Pcapture = FB.getBuffer();
+//          int encodedLength2 = Base64.encodedLength(cam.frameSize());
+//          uint8_t base64String[encodedLength2];
+//          client_pntr->println("HTTP/1.1 200 OK");
+//          client_pntr->println("Content-Type: text/html");
+//          client_pntr->println("Connection: close");  // the connection will be closed after completion of the response
+//          client_pntr->println("Refresh: 5");  // refresh the page automatically every 5 sec
+//          client_pntr->println();
+//          client_pntr->println("<!DOCTYPE HTML>");
+//          client_pntr->println("<html>");
+//          client_pntr->println("<body>");
+//          Base64.encode(base64String,capture,cam.frameSize());
+//          client.print("<img src=\"data:image/png;base64, ");
+//          client.print(base64String);
+//          client.println(" \" alt=\"Red dot\" />");
+//
+//          client_pntr->println("</body>");
+//          client_pntr->println("</html>");
+          
           Serial.println("Running the detection algorithm");
           long edge = detectEdges();
           byte myByte[4];

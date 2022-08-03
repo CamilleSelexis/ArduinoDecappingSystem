@@ -42,6 +42,10 @@ void homePage(EthernetClient* client_pntr){
   client_pntr->print("<h1 style=\"text-align:center\">Decapper ");client_pntr->print(DECAP_NUMBER);client_pntr->println("</h1>");
   client_pntr->print("<p>Current Status : ");client_pntr->print(M4work?"Busy":"Available");client_pntr->println("</p>");
   client_pntr->print("<p>Internal Time : ");client_pntr->print(millis());client_pntr->println("</p>");
+  client_pntr->println("<p><a href=\"http://192.168.0.101/initialize\">Initialize</a></p>");
+  client_pntr->println("<p><a href=\"http://192.168.0.101/decap\">Decap</a></p>");
+  client_pntr->println("<p><a href=\"http://192.168.0.101/recap\">Recap</a></p>");
+  client_pntr->println("<p><a href=\"http://192.168.0.101/capture\">Capture</a></p>");
   client_pntr->println("<p><a href=\"http://192.168.0.101/reset\">Reset</a></p>");
   client_pntr->println("</body>");
   client_pntr->println("</html>");
