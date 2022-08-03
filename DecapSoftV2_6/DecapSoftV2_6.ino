@@ -85,8 +85,8 @@ int32_t* parameters[10] = {&Zstandby, &Mstandby, &Cstandby,&Zspeed,&Mspeed,&Cspe
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
 //IPAddress ip(10,0,16,10);   //Adresse IP
-IPAddress ip(192,168,0,101);
-EthernetServer server = EthernetServer(52);  // (port 80 is default for HTTP) 52 is the number of the lab
+IPAddress ip(192,168,0,101); //Does not tolerate 192.168.1.101
+EthernetServer server = EthernetServer(80);  // (port 80 is default for HTTP) 52 is the number of the lab
 
 
 //-------------------------------------------//
