@@ -106,6 +106,10 @@ long detectEdges() {
   int edge_length[found];
   int nb_edge = 0;
   int l = 0;
+  if(found == 0){
+    edge_length[0] = 0;
+    edge_number[0] = 0;
+  }
   for(int i = 0; i<found; i++){
     if(i<found-1){
       edge_number[i] = nb_edge;

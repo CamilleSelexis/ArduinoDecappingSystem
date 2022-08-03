@@ -19,6 +19,7 @@ using namespace rtos;
 
 #include <stdint.h>
 
+#define DECAP_NUMBER 0
 #define mvt_in  digitalWrite(LEDG,LOFF);digitalWrite(LEDR,LON)
 #define mvt_out digitalWrite(LEDR,LOFF);digitalWrite(LEDG,LON)
 
@@ -26,7 +27,7 @@ using namespace rtos;
 #define motorOFF  digitalWrite(D9,LOW)
 
 #define pin_crydom  D7 //Relay
-
+#define TIMEOUT 2000
 const int LON = LOW; // Voltage level is inverted for the LED
 const int LOFF = HIGH;
 
@@ -145,16 +146,29 @@ void loop() {
 //No need to change that, just remembers it seek the string at the end of a line. So "blabla" will also trigger "anyblabla"
   digitalWrite(LEDB,HIGH);
   delay(100);
-  
+  int v = 0;
   // listen for incoming clients
   EthernetClient client = server.available();
+  
   EthernetClient* client_pntr = &client;
   if (client) {
+    client.setTimeout(1000);
+    unsigned long last_time = millis();
     // an http request ends with a blank line
     String currentLine = "";
     while (client.connected()) {
       if(client.available()){
+        last_time = millis();
+        currentLine = "";//reset currentLine
+        //Read the first Line
         char c = client.read();
+        
+        while(!(c == '\n' || c == ' ')){
+          currentLine += c;
+          c = client.read();
+        }
+        //Serial.println(currentLine);
+        /*char c = client.read();
         
         if(c == '\n'){
           if(currentLine.length() !=0){
@@ -162,49 +176,52 @@ void loop() {
             currentLine = "";}
         } else if(c != '\r'){
           currentLine += c;
+        }*/
+        if(currentLine.endsWith("home")){
+          homePage(client_pntr);
+          endConnection(client_pntr);
         }
-        
-        if(currentLine.endsWith("Status")){
+        else if(currentLine.endsWith("reset")){
+          answerHttp(client_pntr,currentLine);
+          endConnection(client_pntr);
+          resetFunc();
+        }
+        else if(currentLine.endsWith("DecapperStatus")){
+          answerHttp(client_pntr,currentLine);
           Status();
-          client.print("end\n");
-          client.stop();
+          endConnection(client_pntr);
         } 
         else if(currentLine.endsWith("Initialize")){
-          client.print("Initialize");
+          answerHttp(client_pntr,currentLine);
           refAllHome();
-          client.print("end\n");
-          client.stop();
+          endConnection(client_pntr);
           } 
         else if(currentLine.endsWith("Decap")){
-          client.print("Decap routine");
+          answerHttp(client_pntr,currentLine);
           Decap();
-          client.print("end\n");
-          client.stop();
+          endConnection(client_pntr);
         }
         else if(currentLine.endsWith("Recap")){
-          client.print("Recap routine");
+          answerHttp(client_pntr,currentLine);
           Recap();
-          client.print("end\n");
-          client.stop();
+          endConnection(client_pntr);
         }  
         else if(currentLine.endsWith("Sudo Uncap")){
           SudoDecap();
-          client.stop();
+          endConnection(client_pntr);
           } 
         else if(currentLine.endsWith("Sudo Ricap")){
           SudoRecap();
-          client.stop();
+          endConnection(client_pntr);
           }
         else if(currentLine.endsWith("Standby")){
           GoToStandby();
-          client.print("end\n");
-          client.stop();
+          endConnection(client_pntr);
         }
-        else if(currentLine.endsWith("capture")){
-          Serial.println("Capture Routine");
+        else if(currentLine.endsWith("Capture")){
+          answerHttp(client_pntr,currentLine);
           finalPos();
-          client.print("end\n");
-          client.stop();
+          endConnection(client_pntr);
                   
         }
           
@@ -235,163 +252,166 @@ void loop() {
           Serial.println("Alignment Routine");
           client.print("Alignement Routine");
           Align();
-          client.print("end\n");
-          client.stop();       
-          }
-          else if(currentLine.endsWith("ReadParameters")){
-            Serial.println("Sending params");
-            client.print("Sending params");
-            read_parameters(client);
-            client.stop(); 
-          }
-          else if(currentLine.endsWith("WriteParameters")){
-            write_parameters(client_pntr);
-            client.stop();
+          endConnection(client_pntr);       
+        }
+        else if(currentLine.endsWith("ReadParameters")){
+          Serial.println("Sending params");
+          client.print("Sending params");
+          read_parameters(client);
+          endConnection(client_pntr); 
+        }
+        else if(currentLine.endsWith("WriteParameters")){
+          write_parameters(client_pntr);
+          endConnection(client_pntr);
 
-          }
-          else if(currentLine.endsWith("Manual control")){
-            Serial.println("Going into manual control");
-            client.print("Going into manual control");
-            client.stop();
-            digitalWrite(LEDG,HIGH);
-            digitalWrite(LEDB,HIGH);
-            delay(1000);
-            //manualControl();
-            bool manual_ctrl = true;
-            while(manual_ctrl){
-              digitalWrite(LEDG,LOW);
-              delay(100);
-              EthernetClient client_manual = server.available();
-              if (client_manual) {
-                  // an http request ends with a blank line
-                  while (client_manual.connected()) {
-                    if(client_manual.available()){
-                      char data = client_manual.read();
-                      switch(data){
-                        case 'Z':
-                          data = client_manual.read();
-                          if(data == 'M'){
-                            delay(50);
-                            byte value[4] = {0,0,0,0};//The value is a long
-                            value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
-                            value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
-                            int32_t val = bytetolong(value);
-                            Serial.print("Received value for movement in Z of : ");Serial.println(val);
-                            *Pworking = true;
-                            motorON;
-                            Move('Z',value[0],value[1],value[2],value[3]);
-                            while(*Pworking){
-                              if(RPC.available()){
-                                client_manual.write(RPC.read());
-                              }
-                            }
-                            motorOFF;
-                          }
-                          else if(data == 'S'){
-                            byte value[4] = {0,0,0,0};//The value is a long
-                            value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
-                            value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
-                            int32_t val = bytetolong(value);
-                            Serial.print("Received value for speed in Z of : ");Serial.println(val);
-                            *Pworking = true;
-                            Speed('Z',value[0],value[1],value[2],value[3]);
-                            while(*Pworking){
-                              if(RPC.available()){
-                                client_manual.write(RPC.read());
-                              }
-                            }
-                          }
-                          break;
-                      case 'M':
-                        data = client_manual.read();
-                        if(data == 'M'){
-                          byte value[4] = {0,0,0,0};//The value is a long
-                          value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
-                          value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
-                          int32_t val = bytetolong(value);
-                          Serial.print("Received value for movement in M of : ");Serial.println(val);
-                          *Pworking = true;
-                          motorON;
-                          Move('M',value[0],value[1],value[2],value[3]);
-                          while(*Pworking){
-                            if(RPC.available()){
-                              client_manual.write(RPC.read());
-                            }
-                          }
-                          motorOFF;
-                        }
-                        else if(data == 'S'){
-                          byte value[4] = {0,0,0,0};//The value is a long
-                          value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
-                          value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
-                          int32_t val = bytetolong(value);
-                          Serial.print("Received value for speed in M of : ");Serial.println(val);
-                          *Pworking = true;
-                          Speed('M',value[0],value[1],value[2],value[3]);
-                          while(*Pworking){
-                            if(RPC.available()){
-                              client_manual.write(RPC.read());
-                            }
+        }
+        else if(currentLine.endsWith("Manual control")){
+          Serial.println("Going into manual control");
+          client.print("Going into manual control");
+          client.stop();
+          digitalWrite(LEDG,HIGH);
+          digitalWrite(LEDB,HIGH);
+          delay(1000);
+          //manualControl();
+          bool manual_ctrl = true;
+          while(manual_ctrl){
+            digitalWrite(LEDG,LOW);
+            delay(100);
+            EthernetClient client_manual = server.available();
+            if (client_manual) {
+              // an http request ends with a blank line
+              while (client_manual.connected()) {
+                if(client_manual.available()){
+                  char data = client_manual.read();
+                  switch(data){
+                    case 'Z':
+                      data = client_manual.read();
+                      if(data == 'M'){
+                        delay(50);
+                        byte value[4] = {0,0,0,0};//The value is a long
+                        value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
+                        value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
+                        int32_t val = bytetolong(value);
+                        Serial.print("Received value for movement in Z of : ");Serial.println(val);
+                        *Pworking = true;
+                        motorON;
+                        Move('Z',value[0],value[1],value[2],value[3]);
+                        while(*Pworking){
+                          if(RPC.available()){
+                            client_manual.write(RPC.read());
                           }
                         }
-                        break;
-
-                        case 'C':
-                          data = client_manual.read();
-                          if(data == 'M'){
-                            byte value[4] = {0,0,0,0};//The value is a long
-                            value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
-                            value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
-                            int32_t val = bytetolong(value);
-                            Serial.print("Received value for movement in C of : ");Serial.println(val);
-                            *Pworking = true;
-                            motorON;
-                            Move('C',value[0],value[1],value[2],value[3]);
-                            while(*Pworking){
-                              if(RPC.available()){
-                                client_manual.write(RPC.read());
-                              }
-                            }
-                            motorOFF;
-                          }
-                          else if(data == 'S'){
-                            byte value[4] = {0,0,0,0};//The value is a long
-                            value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
-                            value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
-                            int32_t val = bytetolong(value);
-                            Serial.print("Received value for speed in C of : ");Serial.println(val);
-                            *Pworking = true;
-                            Speed('C',value[0],value[1],value[2],value[3]);
-                            while(*Pworking){
-                              if(RPC.available()){
-                                client_manual.write(RPC.read());
-                              }
-                            }
-                          }
-                        break;
-                        case 'Q':
-                          Serial.println("I will exit manual control");
-                          client_manual.print("I will exit manual control");
-                          manual_ctrl = false;
-                          break;
-                        default:
-                          client_manual.print("Message must start by M,C or Z");
-                          break;
+                        motorOFF;
                       }
-                      client_manual.flush();
-                      client_manual.stop();
+                      else if(data == 'S'){
+                        byte value[4] = {0,0,0,0};//The value is a long
+                        value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
+                        value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
+                        int32_t val = bytetolong(value);
+                        Serial.print("Received value for speed in Z of : ");Serial.println(val);
+                        *Pworking = true;
+                        Speed('Z',value[0],value[1],value[2],value[3]);
+                        while(*Pworking){
+                          if(RPC.available()){
+                            client_manual.write(RPC.read());
+                          }
+                        }
+                      }
+                      break;
+                  case 'M':
+                    data = client_manual.read();
+                    if(data == 'M'){
+                      byte value[4] = {0,0,0,0};//The value is a long
+                      value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
+                      value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
+                      int32_t val = bytetolong(value);
+                      Serial.print("Received value for movement in M of : ");Serial.println(val);
+                      *Pworking = true;
+                      motorON;
+                      Move('M',value[0],value[1],value[2],value[3]);
+                      while(*Pworking){
+                        if(RPC.available()){
+                          client_manual.write(RPC.read());
+                        }
+                      }
+                      motorOFF;
                     }
+                    else if(data == 'S'){
+                      byte value[4] = {0,0,0,0};//The value is a long
+                      value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
+                      value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
+                      int32_t val = bytetolong(value);
+                      Serial.print("Received value for speed in M of : ");Serial.println(val);
+                      *Pworking = true;
+                      Speed('M',value[0],value[1],value[2],value[3]);
+                      while(*Pworking){
+                        if(RPC.available()){
+                          client_manual.write(RPC.read());
+                        }
+                      }
+                    }
+                    break;
+
+                    case 'C':
+                      data = client_manual.read();
+                      if(data == 'M'){
+                        byte value[4] = {0,0,0,0};//The value is a long
+                        value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
+                        value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
+                        int32_t val = bytetolong(value);
+                        Serial.print("Received value for movement in C of : ");Serial.println(val);
+                        *Pworking = true;
+                        motorON;
+                        Move('C',value[0],value[1],value[2],value[3]);
+                        while(*Pworking){
+                          if(RPC.available()){
+                            client_manual.write(RPC.read());
+                          }
+                        }
+                        motorOFF;
+                      }
+                      else if(data == 'S'){
+                        byte value[4] = {0,0,0,0};//The value is a long
+                        value[0] = (byte)client_manual.read();value[1] = (byte)client_manual.read();
+                        value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
+                        int32_t val = bytetolong(value);
+                        Serial.print("Received value for speed in C of : ");Serial.println(val);
+                        *Pworking = true;
+                        Speed('C',value[0],value[1],value[2],value[3]);
+                        while(*Pworking){
+                          if(RPC.available()){
+                            client_manual.write(RPC.read());
+                          }
+                        }
+                      }
+                    break;
+                    case 'Q':
+                      Serial.println("I will exit manual control");
+                      client_manual.print("I will exit manual control");
+                      manual_ctrl = false;
+                      break;
+                    default:
+                      client_manual.print("Message must start by M,C or Z");
+                      break;
                   }
+                  client_manual.flush();
+                  client_manual.stop();
+                }
               }
-              digitalWrite(LEDG,HIGH);
-              delay(100);
             }
+            digitalWrite(LEDG,HIGH);
+            delay(100);
           }
+        }//if(currentLine.endswith("Manual control"))
  
-          } 
+      }//if(client.available())
+      else if(millis() - last_time > TIMEOUT){
+        Serial.println("timed out");
+        client.stop();
       }
-      client.stop();     
-  }
+    }//while(client.connected())
+    client.stop();     
+  }//if(client)
   digitalWrite(LEDB,LOW);
   delay(100);
 }

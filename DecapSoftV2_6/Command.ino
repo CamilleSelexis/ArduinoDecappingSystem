@@ -222,3 +222,11 @@ void Status(){
     Serial.println("Machine available and initialised");
     } else {Serial.println("Machine available but not initialised");}
 }
+
+void resetFunc(void) {
+  unsigned long *registerAddr;
+  registerAddr = (unsigned long *)0xE000ED0C; //Writes to the AIRCR register of the stm32h747 to software restet the arduino
+  //It is a 32 bit register set bit 2 to request a reset and write 0x05FA to enable the write
+  //See Arm® v7-M Architecture Reference Manual for more information
+  *registerAddr = (unsigned long) 0x05FA0304;
+}
