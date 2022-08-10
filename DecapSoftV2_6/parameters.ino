@@ -2,7 +2,7 @@
 #include <Ethernet.h>
 
 void write_parameters(EthernetClient* client_pntr){
-  *Pworking = true;
+  *M4work_pntr = true;
   char data[4] = {0,0,0,0};
   int32_t params[10] = {0,0,0,0,0,0,0,0,0,0};
   int counter = 0;
@@ -30,7 +30,7 @@ void write_parameters(EthernetClient* client_pntr){
     //Serial.println("Called the RPC function " + String(params[i]));
   }
   bool result = RPC.call("readM4Params").as<bool>();
-  while(*Pworking){
+  while(*M4work_pntr){
     if(RPC.available()){
       client_pntr->write(RPC.read());
     }
@@ -76,9 +76,4 @@ void longtochar(long mylong,byte* myByte){
   *(myByte+2) = (mylong>>8) & 0xFF;
   *(myByte+1) = (mylong>>16) & 0xFF;
   *(myByte) = (mylong>>24) & 0xFF;
-}
-
-bool M4TaskCompleted(){
-  *Pworking = false;
-  return true;
 }

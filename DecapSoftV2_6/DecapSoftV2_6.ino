@@ -27,6 +27,9 @@ using namespace rtos;
 #define motorON   digitalWrite(D9,HIGH);delay(1)
 #define motorOFF  digitalWrite(D9,LOW)
 
+#define relayON digitalWrite(pin_crydom,HIGH);
+#define relayOFF digitalWrite(pin_crydom,LOW);
+
 #define pin_crydom  D7 //Relay
 #define TIMEOUT 2000
 const int LON = LOW; // Voltage level is inverted for the LED
@@ -37,14 +40,19 @@ const float Ctrans = 1.25;       //C secondary gear ratio
 const int Cmicrosteps = 4;     //Microsteps
 long stp1tour;       //Number of step in one C rotation.
 
-bool isInit = false;          //Est-ce que la machine est initialisée
-bool *PisInit = &isInit;      //Est uniquement initialisée false, puis est passée en true par la routine init.
+bool HS = 0;
 
-bool C_start=false;            //Start of the C rotation when tightening
-bool* CstartPoint = &C_start; //Pointer to Cstart
+bool isInit = false;          //Est-ce que la machine est initialisée
+bool *isInit_pntr = &isInit;      //Est uniquement initialisée false, puis est passée en true par la routine init.
+
+bool capHeld = false;           //Signals that a cap is currenlty held
+bool *capHeld_pntr = &capHeld;
+
+//bool Cstart=false;            //Start of the C rotation when tightening
+//bool* Cstart_pntr = &Cstart; //Pointer to Cstart
 
 volatile bool M4work = false;          //Cette variable est vrai lorsque le M4 effectue une tache
-volatile bool *Pworking = &M4work;     //N'est pas utilisé pour le moment mais pourrait être utile
+volatile bool *M4work_pntr = &M4work;     //N'est pas utilisé pour le moment mais pourrait être utile
 
 int baud = 115200;          //Baud rate of the serial comunication
 
@@ -83,7 +91,10 @@ int32_t Macc = 500;
 int32_t Cacc = 500;
 int32_t ScrewSpeed = 8;
 int32_t* parameters[10] = {&Zstandby, &Mstandby, &Cstandby,&Zspeed,&Mspeed,&Cspeed,&Zacc,&Macc,&Cacc,&ScrewSpeed};
- //Ethernet related ---------------------
+//
+long task_start_time = 0;
+
+//Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
 //IPAddress ip(10,0,16,10);   //Adresse IP
@@ -96,6 +107,9 @@ void setup(){
   bootM4();
   RPC.begin();
   RPC.bind("M4TaskCompleted",M4TaskCompleted);
+  RPC.bind("initDone",initDone);
+  RPC.bind("decapDone",decapDone);
+  RPC.bind("recapDone",recapDone);
   //RPC.bind("setParams", setParams);
   Serial.begin(baud); //Begin serial communication aka discussion through usb
   Serial.println("Serial Coms started. RPC starting...");
@@ -150,7 +164,6 @@ void loop() {
   int v = 0;
   // listen for incoming clients
   EthernetClient client = server.available();
-  
   EthernetClient* client_pntr = &client;
   if (client) {
     client.setTimeout(1000);
@@ -158,6 +171,7 @@ void loop() {
     // an http request ends with a blank line
     String currentLine = "";
     while (client.connected()) {
+      int state = getStatus();
       if(client.available()){
         last_time = millis();
         currentLine = "";//reset currentLine
@@ -168,44 +182,45 @@ void loop() {
           currentLine += c;
           c = client.read();
         }
-        //Serial.println(currentLine);
-        /*char c = client.read();
         
-        if(c == '\n'){
-          if(currentLine.length() !=0){
-            Serial.println(currentLine);
-            currentLine = "";}
-        } else if(c != '\r'){
-          currentLine += c;
-        }*/
         if(currentLine.endsWith("home")){
           homePage(client_pntr);
-          endConnection(client_pntr);
+          //endConnection(client_pntr);
         }
         else if(currentLine.endsWith("reset")){
           answerHttp(client_pntr,currentLine);
-          endConnection(client_pntr);
+          //endConnection(client_pntr);
           resetFunc();
         }
-        else if(currentLine.endsWith("DecapperStatus")){
-          answerHttp(client_pntr,currentLine);
-          Status();
-          endConnection(client_pntr);
+        else if(currentLine.endsWith("decapperStatus")){
+          statusHttp(client_pntr,currentLine);
         } 
         else if(currentLine.endsWith("initialize")){
-          answerHttp(client_pntr,currentLine);
-          refAllHome();
-          endConnection(client_pntr);
-          } 
+          if(state == 4){//decapper is currenlty busy
+            answerHttpNo(client_pntr,currentLine,state);
+          }
+          else{
+            answerHttp(client_pntr,currentLine);
+            refAllHome();
+          }
+        } 
         else if(currentLine.endsWith("decap")){
-          answerHttp(client_pntr,currentLine);
-          Decap();
-          endConnection(client_pntr);
+          if(state != 1){ //If in any other state than ready
+            answerHttpNo(client_pntr,currentLine,state);
+          }
+          else{
+            answerHttp(client_pntr,currentLine);
+            Decap();
+          }
         }
         else if(currentLine.endsWith("recap")){
-          answerHttp(client_pntr,currentLine);
-          Recap();
-          endConnection(client_pntr);
+          if(state != 2){
+            answerHttpNo(client_pntr,currentLine,state);
+          }
+          else{
+            answerHttp(client_pntr,currentLine);
+            Recap();
+          }
         }  
         else if(currentLine.endsWith("Sudo Uncap")){
           SudoDecap();
@@ -227,33 +242,8 @@ void loop() {
         }
           
         else if(currentLine.endsWith("print")){
-          
-          //printCapture();
+         
           cam.setStandby(false);
-
-//          if (cam.grabFrame(FB,500) == 0){
-//            Serial.println("Capture done");
-//          }
-//          uint8_t capture[240*320];
-//          uint8_t* Pcapture = capture;
-//          Pcapture = FB.getBuffer();
-//          int encodedLength2 = Base64.encodedLength(cam.frameSize());
-//          uint8_t base64String[encodedLength2];
-//          client_pntr->println("HTTP/1.1 200 OK");
-//          client_pntr->println("Content-Type: text/html");
-//          client_pntr->println("Connection: close");  // the connection will be closed after completion of the response
-//          client_pntr->println("Refresh: 5");  // refresh the page automatically every 5 sec
-//          client_pntr->println();
-//          client_pntr->println("<!DOCTYPE HTML>");
-//          client_pntr->println("<html>");
-//          client_pntr->println("<body>");
-//          Base64.encode(base64String,capture,cam.frameSize());
-//          client.print("<img src=\"data:image/png;base64, ");
-//          client.print(base64String);
-//          client.println(" \" alt=\"Red dot\" />");
-//
-//          client_pntr->println("</body>");
-//          client_pntr->println("</html>");
           
           Serial.println("Running the detection algorithm");
           long edge = detectEdges();
@@ -319,10 +309,10 @@ void loop() {
                         value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
                         int32_t val = bytetolong(value);
                         Serial.print("Received value for movement in Z of : ");Serial.println(val);
-                        *Pworking = true;
+                        *M4work_pntr = true;
                         motorON;
                         Move('Z',value[0],value[1],value[2],value[3]);
-                        while(*Pworking){
+                        while(*M4work_pntr){
                           if(RPC.available()){
                             client_manual.write(RPC.read());
                           }
@@ -335,9 +325,9 @@ void loop() {
                         value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
                         int32_t val = bytetolong(value);
                         Serial.print("Received value for speed in Z of : ");Serial.println(val);
-                        *Pworking = true;
+                        *M4work_pntr = true;
                         Speed('Z',value[0],value[1],value[2],value[3]);
-                        while(*Pworking){
+                        while(*M4work_pntr){
                           if(RPC.available()){
                             client_manual.write(RPC.read());
                           }
@@ -352,10 +342,10 @@ void loop() {
                       value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
                       int32_t val = bytetolong(value);
                       Serial.print("Received value for movement in M of : ");Serial.println(val);
-                      *Pworking = true;
+                      *M4work_pntr = true;
                       motorON;
                       Move('M',value[0],value[1],value[2],value[3]);
-                      while(*Pworking){
+                      while(*M4work_pntr){
                         if(RPC.available()){
                           client_manual.write(RPC.read());
                         }
@@ -368,9 +358,9 @@ void loop() {
                       value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
                       int32_t val = bytetolong(value);
                       Serial.print("Received value for speed in M of : ");Serial.println(val);
-                      *Pworking = true;
+                      *M4work_pntr = true;
                       Speed('M',value[0],value[1],value[2],value[3]);
-                      while(*Pworking){
+                      while(*M4work_pntr){
                         if(RPC.available()){
                           client_manual.write(RPC.read());
                         }
@@ -386,10 +376,10 @@ void loop() {
                         value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
                         int32_t val = bytetolong(value);
                         Serial.print("Received value for movement in C of : ");Serial.println(val);
-                        *Pworking = true;
+                        *M4work_pntr = true;
                         motorON;
                         Move('C',value[0],value[1],value[2],value[3]);
-                        while(*Pworking){
+                        while(*M4work_pntr){
                           if(RPC.available()){
                             client_manual.write(RPC.read());
                           }
@@ -402,9 +392,9 @@ void loop() {
                         value[2] = (byte)client_manual.read();value[3] = (byte)client_manual.read();
                         int32_t val = bytetolong(value);
                         Serial.print("Received value for speed in C of : ");Serial.println(val);
-                        *Pworking = true;
+                        *M4work_pntr = true;
                         Speed('C',value[0],value[1],value[2],value[3]);
-                        while(*Pworking){
+                        while(*M4work_pntr){
                           if(RPC.available()){
                             client_manual.write(RPC.read());
                           }
@@ -440,4 +430,16 @@ void loop() {
   }//if(client)
   digitalWrite(LEDB,LOW);
   delay(100);
+  //If the M4 processor is currently working, we read the RPC every 200 ms to check for uncomming messages
+  if(*M4work_pntr){
+    delay(100);
+    String buffer = "";
+    while (RPC.available()) {
+      buffer += (char)RPC.read(); // Fill the buffer with characters
+    }
+  
+    if (buffer.length() > 0) {
+      Serial.print(buffer);
+    }
+  }
 }

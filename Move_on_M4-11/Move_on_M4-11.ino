@@ -165,7 +165,7 @@ switch(status){
     pin_init();
     Ref();
     delay(1000);
-    res = RPC.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("initDone").as<bool>();
     status = 0;
     break;
 
@@ -252,7 +252,7 @@ switch(status){
     pin_reinit();
     Decap();
     delay(1000);
-    res = RPC.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("decapDone").as<bool>();
     status = 0;
     break;
 
@@ -260,7 +260,7 @@ switch(status){
     pin_reinit();
     Recap();
     delay(1000);
-    res = RPC.call("M4TaskCompleted").as<bool>();
+    res = RPC.call("recapDone").as<bool>();
     status = 0;
     break;
   case 13:

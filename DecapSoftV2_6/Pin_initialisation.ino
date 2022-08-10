@@ -11,5 +11,5 @@ void pin_init(){
 }
 
 void M4working(bool working){
-  *Pworking = working;
+  *M4work_pntr = working;
 }

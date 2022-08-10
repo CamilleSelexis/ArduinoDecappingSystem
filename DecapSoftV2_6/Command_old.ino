@@ -1,19 +1,26 @@
-//All the commands called by ethernet calls. 
+/*//All the commands called by ethernet calls. 
 //They are a list of RPC commands, Wait(), communication and minors hardware control (crydom, leds)
 
 void refAllHome(){ //Initialisation routine
-  task_start_time = millis();
+  long init_start_time = millis();
   Serial.println("The machine will now ref all its axis...");
   mvt_in;        //Mvt led on
   motorON;      //Motor enable
-  *M4work_pntr = RPC.call("Ref").as<bool>();
+  *Pworking = RPC.call("Ref").as<bool>();
+  Wait();
+  motorOFF;     //motor disable
+  *capHeld_pntr = false;
+  mvt_out;       //Led mvt off
+  Serial.println("Init routine took" + String(millis()-init_start_time)+ " ms to complete");
+  Serial.println("RefAllHome complete.");
+  
+  *isInit_pntr = true;
 }
-
 void GoToStandby(){
   Serial.println("Going back to standby");
   mvt_in;        //Mvt led on
   motorON;      //Motor enable
-  *M4work_pntr = RPC.call("GoToStandby").as<bool>();
+  *Pworking = RPC.call("GoToStandby").as<bool>();
   Wait();
   motorOFF;     //motor disable
   mvt_out;       //Led mvt off
@@ -22,30 +29,60 @@ void GoToStandby(){
   Serial.println("Standby reached");
 }
 void Decap(){
-  task_start_time = millis();
-  Serial.println("The machine will now start the decaping routine. Keep clear");
+  long decap_start_time = millis();
+  int state = getStatus();
+  if(state != 1){
+    Serial.print("Cannot start decap, status = ");Serial.println(state);
+    return;
+  }
+  else{
   
-  long C_pos = finalPos();
-  Serial.print("Camera capture returned the value : ");
-  Serial.println(C_pos);
-  
-  mvt_in;
-  motorON;
-  relayON;
-  *M4work_pntr = true;
-  if(!RPC.call("Decap",(int)C_pos).as<int>())
-    {Serial.println("Error calling Decap");}     
+    Serial.println("The machine will now start the decaping routine. Keep clear");
+    long C_pos = finalPos();
 
+    Serial.print("Camera capture returned the value : ");
+    Serial.println(C_pos);
+    mvt_in;
+    motorON;
+    digitalWrite(pin_crydom,HIGH);
+    *Pworking = true;
+    if(!RPC.call("Decap",(int)C_pos).as<int>())
+      {Serial.println("Error calling Decap");}     
+    Wait();
+    motorOFF;
+    mvt_out;
+    *capHeld_pntr = true;
+    *capHeld_pntr = true;
+    digitalWrite(pin_crydom,LOW);
+    Serial.println("Decaping finished");
+    Serial.println("Decap routine took" + String(millis()-decap_start_time) + " ms to complete");
+    digitalWrite(LEDG,LON);
+    digitalWrite(LEDB,LON); //LEDB signals that a cap is being held
+
+  }
 }
 
 
 void Recap(){
-  task_start_time = millis();
-  Serial.println("The machine will now start the recaping routine. Keep clear");
-  mvt_in;
-  motorON;
-  relayON;
-  *M4work_pntr = RPC.call("Recap").as<bool>();
+  long recap_start_time = millis();
+  int state = getStatus();
+  if(state != 2){
+    Serial.print("The machine cannot recap, status should be 2, current status = ")Serial.println(state);
+  }else{
+    Serial.println("The machine will now start the recaping routine. Keep clear");
+    digitalWrite(pin_crydom,HIGH);
+    mvt_in;
+    digitalWrite(LEDB,LOFF);
+    motorON;
+    *Pworking = RPC.call("Recap").as<bool>();
+    Wait();
+    *capHeld_pntr = false;
+    motorOFF;
+    mvt_out;
+    digitalWrite(pin_crydom,LOW);
+    Serial.println("Recap routine took" + String(millis()-recap_start_time) + " ms to complete");
+    Serial.println("Recaping finished");
+  }
 }
 
 void Align(){
@@ -58,7 +95,7 @@ void Align(){
       mvt_in;
       motorON;
       digitalWrite(pin_crydom,HIGH);
-      *M4work_pntr = true;
+      *Pworking = true;
       temp = RPC.call("Align",(int)C_pos).as<int>();
       Wait();
       motorOFF;
@@ -81,17 +118,17 @@ void Recap_old(){
     mvt_in;
     digitalWrite(LEDB,LOFF);
     motorON;
-    *M4work_pntr = RPC.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
-    *M4work_pntr = RPC.call("reScrew").as<bool>();
+    *Pworking = RPC.call("reScrew").as<bool>();
     Wait();
     *capHeld_pntr = false;
-    *M4work_pntr = RPC.call("untigh_up").as<bool>();
+    *Pworking = RPC.call("untigh_up").as<bool>();
     Wait();
     digitalWrite(pin_crydom,LOW);
     Serial.println("Recap routine took" + String(millis()-recap_start_time) + " ms to complete");
     Serial.println("Recaping finished");
-    *M4work_pntr = RPC.call("RefM").as<bool>();
+    *Pworking = RPC.call("RefM").as<bool>();
     Wait();
     motorOFF;
     mvt_out;
@@ -103,20 +140,20 @@ Serial.println("The machine will now start the decaping routine. Keep clear");
     mvt_in;
     motorON;
     digitalWrite(pin_crydom,HIGH);
-    *M4work_pntr = RPC.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
-    *M4work_pntr = RPC.call("GetDown").as<bool>();
+    *Pworking = RPC.call("GetDown").as<bool>();
     //long C_pos = GetPos();
     //Serial.print("Camera capture returned the value :");
     //Serial.println(C_pos);
 
     //Wait();
-    //*M4work_pntr = RPC.call("Align",C_pos).as<bool>();
+    //*Pworking = RPC.call("Align",C_pos).as<bool>();
     Wait();
-    *M4work_pntr = RPC.call("Unscrew").as<bool>();
+    *Pworking = RPC.call("Unscrew").as<bool>();
     Wait();
     *capHeld_pntr = true;
-    *M4work_pntr = RPC.call("Bringback").as<bool>();
+    *Pworking = RPC.call("Bringback").as<bool>();
     Wait();
     motorOFF;
     mvt_out;
@@ -134,16 +171,16 @@ void SudoRecap(){
     mvt_in;
     digitalWrite(LEDB,LOFF);
     motorON;
-    *M4work_pntr = RPC.call("Get_flask").as<bool>();
+    *Pworking = RPC.call("Get_flask").as<bool>();
     Wait();
-    *M4work_pntr = RPC.call("reScrew").as<bool>();
+    *Pworking = RPC.call("reScrew").as<bool>();
     Wait();
     *capHeld_pntr = false;
-    *M4work_pntr = RPC.call("untigh_up").as<bool>();
+    *Pworking = RPC.call("untigh_up").as<bool>();
     Wait();
     digitalWrite(pin_crydom,LOW);
     Serial.println("Recaping finished");
-    *M4work_pntr = RPC.call("RefM").as<bool>();
+    *Pworking = RPC.call("RefM").as<bool>();
     Wait();
     motorOFF;
     mvt_out;
@@ -213,4 +250,4 @@ void resetFunc(void) {
   //It is a 32 bit register set bit 2 to request a reset and write 0x05FA to enable the write
   //See Arm® v7-M Architecture Reference Manual for more information
   *registerAddr = (unsigned long) 0x05FA0304;
-}
+}*/
