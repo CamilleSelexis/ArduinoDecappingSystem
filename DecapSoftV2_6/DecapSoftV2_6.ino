@@ -98,7 +98,10 @@ long task_start_time = 0;
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
 //IPAddress ip(10,0,16,10);   //Adresse IP
-IPAddress ip(192,168,1,101); //Does not tolerate 192.168.1.101
+//IPAddress ip(10,0,16,1);
+int8_t ip_addr[4] = {10,0,16,1};
+String StringIP = String(ip_addr[0]) + "." + String(ip_addr[1]) + "." + String(ip_addr[2]) + "." + String(ip_addr[3]);
+IPAddress ip(ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3]); //Does not tolerate 192.168.1.101
 EthernetServer server = EthernetServer(80);  // (port 80 is default for HTTP) 52 is the number of the lab
 
 
@@ -147,7 +150,7 @@ void setup(){
   server.begin();           //"server" is the name of the object for comunication through ethernet
   Serial.print("Ethernet server connected. Server is at ");
   Serial.println(Ethernet.localIP());         //Gives the local IP through serial com
-
+  Serial.println(StringIP);
   digitalWrite(LEDB,LOFF);
   digitalWrite(LEDG,LON);      //Green Led while available
 
@@ -281,7 +284,7 @@ void loop() {
           endConnection(client_pntr);
 
         }
-        else if(currentLine.endsWith("Manual control")){
+        else if(currentLine.endsWith("ManualControl")){
           Serial.println("Going into manual control");
           client.print("Going into manual control");
           client.stop();

@@ -44,22 +44,32 @@ void answerHttpNo(EthernetClient* client_pntr,String currentLine, int state){
 
 void homePage(EthernetClient* client_pntr){
 
+  int state = getStatus();
+  long current_time = millis();
+  int seconds = (int) (current_time / 1000) % 60 ;
+  int minutes = (int) ((current_time / (1000*60)) % 60);
+  int hours   = (int) ((current_time / (1000*60*60)) % 24);
+  char c[30];
+  int l = sprintf(c, "%02d:%02d:%02d",hours,minutes,seconds);
   client_pntr->println("HTTP/1.1 200 OK");
   client_pntr->println("Content-Type: text/html");
   client_pntr->println("Connection: close");  // the connection will be closed after completion of the response
-  client_pntr->println("Refresh: 5");  // refresh the page automatically every 5 sec
+  client_pntr->println("Refresh: 10");  // refresh the page automatically every 5 sec
   client_pntr->println();
   client_pntr->println("<!DOCTYPE HTML>");
   client_pntr->println("<html>");
   client_pntr->println("<body>");
   client_pntr->print("<h1 style=\"text-align:center\">Decapper ");client_pntr->print(DECAP_NUMBER);client_pntr->println("</h1>");
-  client_pntr->print("<p>Current Status : ");client_pntr->print(M4work?"Busy":"Available");client_pntr->println("</p>");
-  client_pntr->print("<p>Internal Time : ");client_pntr->print(millis());client_pntr->println("</p>");
-  client_pntr->println("<p><a href=\"http://192.168.0.101/initialize\">Initialize</a></p>");
-  client_pntr->println("<p><a href=\"http://192.168.0.101/decap\">Decap</a></p>");
-  client_pntr->println("<p><a href=\"http://192.168.0.101/recap\">Recap</a></p>");
-  client_pntr->println("<p><a href=\"http://192.168.0.101/capture\">Capture</a></p>");
-  client_pntr->println("<p><a href=\"http://192.168.0.101/reset\">Reset</a></p>");
+  client_pntr->print("<p>Current Status : ");client_pntr->print(state);
+  client_pntr->print("<img src=\"data:image/png;base64," + (state==3 ? yellow_dot:(state<2 ?green_dot:red_dot)) + "\" alt=\"Red dot\" />");
+  client_pntr->println("</p>");
+  client_pntr->print("<p>Time since last reset : " + String(c));client_pntr->println("</p>");
+  client_pntr->println("<p><a href=\"http://" + StringIP + "/initialize\">Initialize</a></p>");
+  client_pntr->println("<p><a href=\"http://" + StringIP + "/decap\">Decap</a></p>");
+  client_pntr->println("<p><a href=\"http://" + StringIP + "/recap\">Recap</a></p>");
+  client_pntr->println("<p><a href=\"http://" + StringIP + "/capture\">Capture</a></p>");
+  client_pntr->println("<p><a href=\"http://" + StringIP + "/decapperStatus\">Status</a></p>");
+  client_pntr->println("<p><a href=\"http://" + StringIP + "/reset\">Reset</a></p>");
   client_pntr->println("</body>");
   client_pntr->println("</html>");
   
