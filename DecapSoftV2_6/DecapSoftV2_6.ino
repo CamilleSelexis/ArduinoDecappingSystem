@@ -1,6 +1,6 @@
 /*
 Decap software v2.6
-mbed-core v3.0
+mbed-core v3.3
 Developped by J. Pochon & C. Aussems
 Upload on portenta H7 M7 core
 Upload Move on M4 on portenta H7 M4 core
@@ -107,7 +107,7 @@ EthernetServer server = EthernetServer(80);  // (port 80 is default for HTTP) 52
 //-------------------------------------------//
 void setup(){
   Serial.begin(baud); //Begin serial communication aka discussion through usb
-  while(!Serial);
+  //while(!Serial);
   Serial.println("Serial Coms started. RPC starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
   digitalWrite(LEDB,LON);
@@ -146,7 +146,6 @@ void setup(){
   server.begin();           //"server" is the name of the object for comunication through ethernet
   Serial.print("Ethernet server connected. Server is at ");
   Serial.println(Ethernet.localIP());         //Gives the local IP through serial com
-  Serial.println(StringIP);
 
   //Start the M4
   bootM4();
