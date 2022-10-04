@@ -97,27 +97,22 @@ long task_start_time = 0;
 //Ethernet related ---------------------
 byte mac[] = {0xDE, 0xA1, 0x00, 0x73, 0x24, 0x12};  //Mac adress
 
-//IPAddress ip(10,0,16,10);   //Adresse IP
-//IPAddress ip(10,0,16,1);
-int8_t ip_addr[4] = {10,0,16,1};
+uint8_t ip_addr[4] = {192,168,1,101};
 String StringIP = String(ip_addr[0]) + "." + String(ip_addr[1]) + "." + String(ip_addr[2]) + "." + String(ip_addr[3]);
-IPAddress ip(ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3]); //Does not tolerate 192.168.1.101
+//IPAddress ip(ip_addr[0],ip_addr[1],ip_addr[2],ip_addr[3]); //Now it is fine
+IPAddress ip(192,168,1,101);
 EthernetServer server = EthernetServer(80);  // (port 80 is default for HTTP) 52 is the number of the lab
 
 
 //-------------------------------------------//
 void setup(){
-  bootM4();
-  RPC.begin();
-  RPC.bind("M4TaskCompleted",M4TaskCompleted);
-  RPC.bind("initDone",initDone);
-  RPC.bind("decapDone",decapDone);
-  RPC.bind("recapDone",recapDone);
-  //RPC.bind("setParams", setParams);
   Serial.begin(baud); //Begin serial communication aka discussion through usb
+  while(!Serial);
   Serial.println("Serial Coms started. RPC starting...");
   pin_init();       //Initialise the pin modes, initial values and interrupts
   digitalWrite(LEDB,LON);
+
+
   
   stp1tour = ceil(200*Cgear*Ctrans*Cmicrosteps);  //number of step in a rotation of C axis: 34750
 
@@ -127,11 +122,11 @@ void setup(){
   else{
     Serial.println("Cam failed to initialize");
   }
-  cam.setStandby(true);                //Put it in standby mode
+  //cam.setStandby(true);                //Put it in standby mode
                  //Initialise the RPC coms, also boots the M4
   
-  Serial.println("Ethernet Coms starting...");
-  
+  Serial.print("Ethernet Coms starting at IP: ");
+  Serial.println(StringIP);
   Ethernet.begin(mac,ip);  //Start the Ethernet coms
 
 // Check for Ethernet hardware present
@@ -141,6 +136,7 @@ void setup(){
       delay(1); // do nothing, no point running without Ethernet hardware
     }
   }
+  Serial.println("Checking Ethernet Cable");
   if (Ethernet.linkStatus() == LinkOFF) {
     Serial.println("Ethernet cable is not connected.");
   }
@@ -151,6 +147,17 @@ void setup(){
   Serial.print("Ethernet server connected. Server is at ");
   Serial.println(Ethernet.localIP());         //Gives the local IP through serial com
   Serial.println(StringIP);
+
+  //Start the M4
+  bootM4();
+  RPC.begin();
+  RPC.bind("M4TaskCompleted",M4TaskCompleted);
+  RPC.bind("initDone",initDone);
+  RPC.bind("decapDone",decapDone);
+  RPC.bind("recapDone",recapDone);
+  //RPC.bind("setParams", setParams);
+
+  
   digitalWrite(LEDB,LOFF);
   digitalWrite(LEDG,LON);      //Green Led while available
 
