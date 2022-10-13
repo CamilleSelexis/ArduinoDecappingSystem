@@ -3,7 +3,6 @@ Decap software v2.6
 mbed-core v3.3
 Developped by J. Pochon & C. Aussems
 Upload on portenta H7 M7 core
-Upload Move on M4 on portenta H7 M4 core
 */
 
 #include <Portenta_Ethernet.h>
